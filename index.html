@@ -3,698 +3,358 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Boss Mode Quiz</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
-
-        :root {
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --text-main: #ffffff;
-            --mint-green: #98ff98;
-            --stress-red: rgba(255, 0, 0, 0.3);
-            --boss-red: #ff0000;
-        }
-
-        body, html {
-            margin: 0; padding: 0;
-            width: 100%; height: 100%;
-            font-family: 'Nunito', sans-serif;
-            overflow: hidden;
-            background-color: #0f0f1a;
-            color: var(--text-main);
-            transition: background-color 0.5s ease;
-        }
-
-        /* Canvas Background */
-        #bg-canvas {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: -2;
-        }
-
-        /* Ambient overlays */
-        #flash-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: -1; transition: background 0.3s ease;
-        }
-        .flash-happy { background: rgba(152, 255, 152, 0.3); }
-        .flash-scary { background: rgba(0, 0, 0, 0.8); }
-
-        /* Glassmorphism Classes */
-        .glass {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-
-        /* Floating Nav */
-        header {
-            position: absolute;
-            top: 20px; left: 50%;
-            transform: translateX(-50%);
-            width: 90%; max-width: 1000px;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 30px;
-            z-index: 10;
-        }
-
-        .nav-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255,255,255,0.4);
-            color: white; padding: 10px 20px;
-            border-radius: 12px; cursor: pointer;
-            font-family: 'Nunito', sans-serif; font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 0 rgba(255,255,255,0.2); /* 3D effect */
-        }
-        .nav-btn:hover {
-            transform: translateY(-2px) scale(1.05);
-            background: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 6px 15px rgba(255,255,255,0.4);
-        }
-        .nav-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 0 0 rgba(255,255,255,0.2);
-        }
-
-        /* Main Quiz Container */
-        main {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%; max-width: 800px;
-            padding: 40px; text-align: center;
-            z-index: 5;
-            transition: all 0.3s ease;
-        }
-
-        /* Progress Bar (Candy Stripe & Rider) */
-        .progress-container {
-            width: 100%; height: 20px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px; margin-bottom: 30px;
-            position: relative; overflow: visible;
-        }
-        .progress-fill {
-            height: 100%; width: 0%;
-            border-radius: 10px;
-            background: repeating-linear-gradient(45deg, #ff6b6b, #ff6b6b 10px, #feca57 10px, #feca57 20px, #1dd1a1 20px, #1dd1a1 30px, #5f27cd 30px, #5f27cd 40px);
-            background-size: 200% 200%;
-            animation: candyStripe 2s linear infinite;
-            transition: width 0.5s ease-in-out;
-            box-shadow: 0 0 15px rgba(255,255,255,0.5);
-        }
-        .rider-emoji {
-            position: absolute; top: -30px; left: 0%;
-            font-size: 28px;
-            transition: left 0.5s ease-in-out;
-            transform: translateX(-50%);
-            animation: riderBounce 0.5s infinite alternate;
-        }
-
-        /* Questions & Buttons */
-        h2 { font-size: 28px; margin-bottom: 30px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-        
-        .options-grid {
-            display: grid; grid-template-columns: 1fr; gap: 15px;
-            position: relative;
-        }
-
-        .option-btn {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white; font-size: 18px;
-            padding: 15px; border-radius: 12px;
-            cursor: pointer; font-family: 'Nunito', sans-serif;
-            transition: all 0.3s ease; position: relative;
-            box-shadow: 0 5px 0 rgba(0,0,0,0.3);
-        }
-        .option-btn:hover {
-            background: rgba(255,255,255,0.2);
-            transform: scale(1.02);
-            box-shadow: 0 5px 15px rgba(255,255,255,0.2);
-        }
-        .option-btn:active {
-            transform: translateY(5px);
-            box-shadow: none;
-        }
-
-        /* File Upload Fallback */
-        #upload-section { margin-top: 20px; display: none; }
-
-        /* --- Custom Animations --- */
-        @keyframes candyStripe { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
-        @keyframes riderBounce { 0% { transform: translate(-50%, 0px); } 100% { transform: translate(-50%, -10px); } }
-        
-        .happy-bounce { animation: happyBounce 0.6s cubic-bezier(0.28, 0.84, 0.42, 1); box-shadow: 0 0 40px var(--mint-green); border-color: var(--mint-green); }
-        @keyframes happyBounce { 0%, 100% { transform: translate(-50%, -50%); } 50% { transform: translate(-50%, -60%); } }
-
-        .scary-shake { animation: scaryShake 0.4s ease-in-out; }
-        @keyframes scaryShake { 0%, 100% { transform: translate(-50%, -50%); } 25% { transform: translate(-52%, -48%); } 50% { transform: translate(-48%, -52%); } 75% { transform: translate(-53%, -50%); } }
-
-        .stress-beat { animation: stressBeat 0.8s infinite; border-color: red !important; box-shadow: 0 0 30px red !important; }
-        @keyframes stressBeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
-
-        /* Rocket Crush Animation Set */
-        .rocket-fly {
-            z-index: 100;
-            animation: flyRocket 1.5s forwards;
-        }
-        @keyframes flyRocket {
-            0% { transform: scale(1); }
-            30% { transform: translateX(300px) scale(1.2) rotate(15deg); }
-            60% { transform: translateX(-300px) scale(1.2) rotate(-15deg); }
-            100% { transform: translateX(0) scale(1.5); background: #00ffcc; color: black; box-shadow: 0 0 30px #00ffcc, 0 0 60px #00ffcc; font-weight: 900;}
-        }
-        .crushed {
-            animation: crushAway 0.5s forwards;
-            pointer-events: none;
-        }
-        @keyframes crushAway {
-            to { transform: scale(0); opacity: 0; }
-        }
-
-        /* --- Boss Mode --- */
-        .boss-mode body { background-color: #050000; }
-        .boss-mode main.glass { border-color: var(--boss-red); box-shadow: 0 0 50px rgba(255,0,0,0.5); }
-        .boss-mode h2 { color: #ff4d4d; text-shadow: 0 0 10px red; }
-
-        /* --- Drag & Drop Pomodoro --- */
-        #pomodoro {
-            position: absolute; top: 100px; right: 50px;
-            width: 100px; height: 100px;
-            border-radius: 40px; /* Squircle default */
-            display: flex; justify-content: center; align-items: center;
-            flex-direction: column; cursor: grab; z-index: 50;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.4);
-            user-select: none;
-        }
-        #pomodoro:active { cursor: grabbing; }
-        #pomodoro.classic { background: linear-gradient(135deg, #ff4d4d, #1dd1a1); }
-        #pomodoro.cyber { background: linear-gradient(135deg, #ff00ff, #00ffff); }
-        #pomodoro.ocean { background: linear-gradient(135deg, #0984e3, #00cec9); }
-        
-        #pomodoro.shape-circle { border-radius: 50%; }
-        #pomodoro.shape-square { border-radius: 15px; }
-        #pomodoro.shape-squircle { border-radius: 40px; }
-
-        #timer-text { font-size: 22px; font-weight: 900; color: white; text-shadow: 0 0 5px black;}
-        #timer-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px;}
-
-        /* Modals */
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 200; justify-content: center; align-items: center;
-        }
-        .modal-content {
-            background: rgba(20,20,30,0.9); padding: 30px; border-radius: 20px;
-            width: 80%; max-width: 600px; text-align: center; border: 1px solid rgba(255,255,255,0.2);
-        }
-        .theme-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 20px;
-        }
-    </style>
+    <title>Interactive MCQ Test Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-50 min-h-screen p-4 md:p-8 font-sans">
 
-    <canvas id="bg-canvas"></canvas>
-    
-    <div id="flash-overlay"></div>
-
-    <header class="glass">
-        <div>
-            <button class="nav-btn" onclick="openThemeModal()">🪄 Backgrounds</button>
-            <button class="nav-btn" onclick="shuffleQuestions()">🔀 Shuffle PDF Q's</button>
-            <button class="nav-btn" onclick="toggleBossMode()">👿 Boss Mode</button>
-        </div>
-        <div style="font-weight: 900; font-size: 20px;">Score: <span id="score-display">0</span></div>
-    </header>
-
-    <div id="pomodoro" class="classic shape-squircle">
-        <div id="timer-text">25:00</div>
-        <div id="timer-label">Work</div>
-    </div>
-
-    <main class="glass" id="quiz-container">
-        <div class="progress-container">
-            <div class="progress-fill" id="progress-bar"></div>
-            <div class="rider-emoji" id="rider">🚲</div>
-        </div>
-
-        <div id="upload-section">
-            <p>Could not auto-load <code>qbank.json</code> (Needs a local server).</p>
-            <input type="file" id="file-input" accept=".json" class="nav-btn" style="width:100%">
-        </div>
-
-        <div id="question-section" style="display:none;">
-            <h2 id="question-text">Loading Questions...</h2>
-            <div class="options-grid" id="options-container"></div>
-        </div>
-    </main>
-
-    <div class="modal" id="theme-modal">
-        <div class="modal-content glass">
-            <h2>Select Environment</h2>
-            <div class="theme-grid">
-                <button class="nav-btn" onclick="setTheme(0)">Cardio ECG</button>
-                <button class="nav-btn" onclick="setTheme(1)">Particle Net</button>
-                <button class="nav-btn" onclick="setTheme(2)">Starfield</button>
-                <button class="nav-btn" onclick="setTheme(3)">DNA Helix</button>
-                <button class="nav-btn" onclick="setTheme(4)">Floating Hearts</button>
-                <button class="nav-btn" onclick="setTheme(5)">Medical Matrix</button>
-                <button class="nav-btn" onclick="setTheme(6)">Bokeh Lights</button>
-                <button class="nav-btn" onclick="setTheme(7)">Synthwave</button>
-                <button class="nav-btn" onclick="setTheme(8)">Hexagon Tech</button>
-                <button class="nav-btn" onclick="setTheme(9)">Aurora Waves</button>
-            </div>
-            <br>
-            <button class="nav-btn" onclick="closeThemeModal()" style="background: red;">Close</button>
-            
-            <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-            <h3>Pomodoro Settings</h3>
-            <button class="nav-btn" onclick="changePomodoro('cyber', 'shape-circle')">Cyber Circle</button>
-            <button class="nav-btn" onclick="changePomodoro('ocean', 'shape-square')">Ocean Square</button>
-            <button class="nav-btn" onclick="changePomodoro('classic', 'shape-squircle')">Classic Squircle</button>
-        </div>
-    </div>
-
-<script>
-    /* =========================================
-       1. CORE STATE & DATA LOADING
-    ========================================= */
-    let questions = [];
-    let currentQIndex = 0;
-    let score = 0;
-    let isBossMode = false;
-    let answered = false;
-
-    // The evolution array
-    const riders = ['🚲', '🛵', '🏎️', '🚀', '👑'];
-
-    // Try auto-loading JSON, fallback to file input
-    window.onload = async () => {
-        try {
-            const response = await fetch('qbank.json');
-            if (!response.ok) throw new Error("File not found via HTTP");
-            const data = await response.json();
-            initQuiz(data);
-        } catch (e) {
-            console.log("Local fetch failed. Showing upload button.");
-            document.getElementById('upload-section').style.display = 'block';
-        }
-        initCanvasEngine();
-    };
-
-    document.getElementById('file-input').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            try {
-                const data = JSON.parse(event.target.result);
-                initQuiz(data);
-            } catch(err) {
-                alert("Invalid JSON format!");
-            }
-        };
-        reader.readAsText(file);
-    });
-
-    function initQuiz(data) {
-        questions = data;
-        document.getElementById('upload-section').style.display = 'none';
-        document.getElementById('question-section').style.display = 'block';
-        if(questions.length > 30) shuffleQuestions(); // Snuffling feature to 30
-        renderQuestion();
-    }
-
-    function shuffleQuestions() {
-        questions = questions.sort(() => Math.random() - 0.5).slice(0, 30);
-        currentQIndex = 0;
-        score = 0;
-        document.getElementById('score-display').innerText = score;
-        renderQuestion();
-    }
-
-    /* =========================================
-       2. UI RENDERING & LOGIC
-    ========================================= */
-    function renderQuestion() {
-        answered = false;
-        if(currentQIndex >= questions.length) {
-            document.getElementById('question-text').innerText = "Quiz Complete! Masterful!";
-            document.getElementById('options-container').innerHTML = `<button class="nav-btn" onclick="shuffleQuestions()">Restart with New Shuffle</button>`;
-            return;
-        }
-
-        const q = questions[currentQIndex];
-        document.getElementById('question-text').innerText = q.question || "Missing Question Text";
+    <div class="max-w-3xl mx-auto space-y-6">
         
-        const container = document.getElementById('options-container');
-        container.innerHTML = '';
+        <!-- System Status Header -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <div>
+                <h2 class="text-xl font-bold text-gray-900 mb-1">System Monitor</h2>
+                <p class="text-sm text-gray-500">Standalone Local Mode</p>
+            </div>
+            <div class="mt-4 sm:mt-0 text-sm bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <p><strong>Status:</strong> <span id="server-status" class="text-green-600 font-medium">All Systems Operational</span></p>
+                <p><strong>Last Updated:</strong> <span id="last-time" class="text-gray-700">--:--</span></p>
+            </div>
+        </div>
 
-        // Extract options assuming format: { question: "...", options: ["A", "B"], answer: 0 }
-        q.options.forEach((opt, index) => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerText = opt;
-            btn.onclick = () => handleAnswer(index, btn, q.answer);
-            container.appendChild(btn);
+        <!-- Main Test Application -->
+        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 relative min-h-[400px]">
+            
+            <!-- Start / Upload Section (Shown initially) -->
+            <div id="uploadContainer" class="block">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Pharmacology MCQ Test</h1>
+                <p class="text-gray-500 text-sm mb-8">Test your knowledge. Questions are automatically shuffled.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Default Bank Option -->
+                    <div class="bg-blue-50 p-6 rounded-xl border border-blue-100 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-blue-900 text-lg mb-2">Use Default Bank</h3>
+                            <p class="text-blue-700 text-sm mb-4">Start immediately with the pre-loaded 30-question Pharmacology bank.</p>
+                        </div>
+                        <button onclick="startWithDefaultBank()" class="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition shadow-sm">
+                            Start Test Now
+                        </button>
+                    </div>
+
+                    <!-- Upload Option -->
+                    <div class="bg-gray-50 p-6 rounded-xl border-2 border-dashed border-gray-300 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-lg mb-2">Upload Custom Bank</h3>
+                            <p class="text-gray-600 text-sm mb-4">Have your own JSON file? Upload it here to take a custom test.</p>
+                        </div>
+                        <label class="w-full text-center px-6 py-3 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition shadow-sm cursor-pointer">
+                            Browse Files
+                            <input type="file" id="fileInput" accept=".json" class="hidden">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Section (Hidden initially) -->
+            <div id="testContainer" class="hidden flex-col h-full">
+                <!-- Progress Indicator -->
+                <div class="mb-6 flex justify-between items-end border-b pb-4">
+                    <h2 class="text-xl font-bold text-gray-800">Question <span id="currentQNum">1</span> of <span id="totalQNum">?</span></h2>
+                    <span id="scoreTracker" class="text-sm font-medium text-gray-500"></span>
+                </div>
+
+                <!-- Question and Options -->
+                <div id="questionArea" class="flex-grow">
+                    <!-- Content injected via JS -->
+                </div>
+
+                <!-- Rationale Area -->
+                <div id="rationalArea" class="mt-6 p-4 bg-blue-50 text-blue-900 rounded-xl hidden text-sm font-medium border border-blue-100 shadow-inner">
+                    <!-- Rationale injected via JS -->
+                </div>
+
+                <!-- Navigation Controls -->
+                <div class="mt-8 pt-6 border-t flex justify-between items-center">
+                    <button id="prevBtn" onclick="prevQ()" class="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        &larr; Previous
+                    </button>
+                    <button id="nextBtn" onclick="nextQ()" class="px-5 py-2.5 bg-gray-900 text-white font-medium rounded-lg hover:bg-black transition">
+                        Next &rarr;
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Section (Hidden initially) -->
+            <div id="resultsContainer" class="hidden text-center py-12">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
+                    <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Test Complete!</h2>
+                <p class="text-gray-500 mb-6">Here is how you performed on this attempt.</p>
+                <div class="bg-gray-50 p-6 rounded-xl border inline-block min-w-[250px] mb-8">
+                    <p class="text-sm text-gray-500 uppercase tracking-wider font-semibold mb-1">Final Score</p>
+                    <p id="scoreText" class="text-4xl font-black text-blue-600"></p>
+                </div>
+                <div>
+                    <button onclick="location.reload()" class="px-8 py-3 bg-gray-900 text-white font-semibold rounded-xl hover:bg-black transition shadow-lg">
+                        Return to Home
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Embedded Data (Standalone Mode) ---
+        const embeddedQuestions = [
+            { "question": "A patient develops chest pain during exercise that is relieved by rest. What type of angina?", "options": ["Unstable angina", "Stable angina", "Variant angina", "MI"], "correct": 1, "rational": "Stable angina is predictably triggered by exertion and relieved by rest." },
+            { "question": "A patient has chest pain at rest and not relieved by nitroglycerin. Diagnosis?", "options": ["Stable angina", "Unstable angina", "Variant angina", "Normal pain"], "correct": 1, "rational": "Unstable angina occurs at rest and is often unresponsive to standard nitrate therapy, signaling an acute risk." },
+            { "question": "Which mechanism causes unstable angina?", "options": ["Fixed narrowing", "Plaque rupture with clot", "Infection", "Low BP"], "correct": 1, "rational": "Unstable angina is typically caused by a sudden plaque rupture and partial thrombosis in a coronary artery." },
+            { "question": "A patient experiences chest pain at night due to vasospasm. Diagnosis?", "options": ["Stable angina", "Unstable angina", "Variant angina", "MI"], "correct": 2, "rational": "Variant (Prinzmetal) angina is caused by coronary artery vasospasm, often occurring at rest or night." },
+            { "question": "Which drug is FIRST used in acute angina attack?", "options": ["Antibiotics", "Nitroglycerin", "Insulin", "Diuretics"], "correct": 1, "rational": "Nitroglycerin provides rapid vasodilation to quickly relieve acute angina." },
+            { "question": "Nitroglycerin works by:", "options": ["Vasoconstriction", "Vasodilation", "Increasing HR", "Increasing BP"], "correct": 1, "rational": "Nitroglycerin is a potent vasodilator, reducing venous return (preload) and decreasing myocardial oxygen demand." },
+            { "question": "A patient feels dizzy after taking nitrate. Cause?", "options": ["Hypertension", "Hypotension", "Infection", "Hyperglycemia"], "correct": 1, "rational": "Nitrates cause systemic vasodilation, which can drop blood pressure leading to dizziness (hypotension)." },
+            { "question": "Which parameter decreases with nitrates?", "options": ["Preload", "Oxygen", "Glucose", "Sodium"], "correct": 0, "rational": "Nitrates pool blood in the veins, significantly reducing the amount of blood returning to the heart (preload)." },
+            { "question": "A patient should sit before taking nitrate to prevent:", "options": ["Hypertension", "Hypotension", "Infection", "Tachycardia"], "correct": 1, "rational": "Sitting prevents falls related to orthostatic hypotension caused by the sudden vasodilation of nitrates." },
+            { "question": "Which drug decreases heart rate and oxygen demand?", "options": ["Beta blockers", "Antibiotics", "Insulin", "Diuretics"], "correct": 0, "rational": "Beta blockers slow the heart rate and decrease contractility, lowering oxygen demand." },
+            { "question": "Stopping beta blockers suddenly may cause:", "options": ["Hypotension", "Rebound angina", "Hypoglycemia", "Infection"], "correct": 1, "rational": "Abrupt cessation of beta blockers can lead to rebound hypertension, tachycardia, and severe angina." },
+            { "question": "Which drug is useful in vasospastic angina?", "options": ["Antibiotics", "Calcium channel blockers", "Insulin", "Diuretics"], "correct": 1, "rational": "Calcium channel blockers relax smooth muscle, preventing the coronary spasms seen in variant angina." },
+            { "question": "Which factor increases oxygen demand?", "options": ["Low HR", "High HR", "Rest", "Sleep"], "correct": 1, "rational": "A high heart rate requires the heart muscle to work harder, increasing its need for oxygen." },
+            { "question": "Which condition reduces oxygen supply?", "options": ["Vasodilation", "Atherosclerosis", "Exercise", "Sleep"], "correct": 1, "rational": "Atherosclerosis involves plaque buildup that narrows arteries, physically restricting blood flow and oxygen supply." },
+            { "question": "Which patient is at highest risk?", "options": ["Young athlete", "Obese smoker hypertensive", "Child", "Healthy adult"], "correct": 1, "rational": "Multiple risk factors (obesity, smoking, hypertension) exponentially increase cardiovascular risk." },
+            { "question": "A diabetic patient may have:", "options": ["Severe pain", "No pain", "Fever", "Rash"], "correct": 1, "rational": "Diabetics often have neuropathy, which can result in 'silent ischemia' (heart attacks without classic chest pain)." },
+            { "question": "Which sign indicates emergency?", "options": ["Pain relieved by rest", "Pain at rest", "Mild pain", "Short pain"], "correct": 1, "rational": "Pain occurring at rest suggests unstable angina or myocardial infarction." },
+            { "question": "Which sign suggests MI instead of angina?", "options": ["Pain relieved", "Pain not relieved", "Short pain", "Mild pain"], "correct": 1, "rational": "Pain that is severe, prolonged, and not relieved by rest or nitroglycerin strongly points to an MI." },
+            { "question": "Which intervention opens blocked artery?", "options": ["ECG", "PCI", "Antibiotics", "Insulin"], "correct": 1, "rational": "Percutaneous Coronary Intervention (PCI/stenting) physically reopens blocked coronary arteries." },
+            { "question": "CABG is indicated for:", "options": ["Mild angina", "Severe blockage", "Infection", "Hypotension"], "correct": 1, "rational": "Coronary Artery Bypass Grafting (CABG) is a surgical option for severe or multi-vessel blockages." },
+            { "question": "Which lifestyle modification is essential?", "options": ["Smoking", "Stop smoking", "Increase fat", "No exercise"], "correct": 1, "rational": "Smoking cessation is the most critical lifestyle change for cardiovascular disease." },
+            { "question": "Which diet is recommended?", "options": ["High fat", "Low fat", "High salt", "No protein"], "correct": 1, "rational": "A low fat, heart-healthy diet is universally recommended for cardiac patients." },
+            { "question": "Which parameter should nurse monitor?", "options": ["BP and HR", "Hair", "Skin", "Vision"], "correct": 0, "rational": "Blood pressure and heart rate directly reflect cardiovascular function and response to cardiac medications." },
+            { "question": "Which symptom is classic?", "options": ["Chest pain", "Fever", "Rash", "Vomiting"], "correct": 0, "rational": "Chest pain (angina) is the hallmark symptom of ischemic heart disease." },
+            { "question": "Pain radiates to:", "options": ["Leg", "Left arm", "Eye", "Ear"], "correct": 1, "rational": "Cardiac chest pain characteristically radiates to the left arm, jaw, or shoulder." },
+            { "question": "Which drug increases oxygen supply?", "options": ["Nitrates", "Insulin", "Antibiotics", "Diuretics"], "correct": 0, "rational": "Nitrates increase oxygen supply by dilating coronary arteries and improving collateral blood flow." },
+            { "question": "Which factor triggers stable angina?", "options": ["Rest", "Exercise", "Sleep", "Food"], "correct": 1, "rational": "Exercise or physical exertion reliably triggers stable angina by increasing oxygen demand." },
+            { "question": "Which angina occurs unpredictably?", "options": ["Stable", "Unstable", "Variant", "Mild"], "correct": 1, "rational": "Unstable angina is unpredictable and can occur even at rest, unlike stable angina." },
+            { "question": "Which angina responds well to rest?", "options": ["Stable", "Unstable", "Variant", "Severe"], "correct": 0, "rational": "Stable angina usually subsides completely within a few minutes of resting." },
+            { "question": "Main goal of angina management:", "options": ["Increase HR", "Balance oxygen supply and demand", "Increase BP", "Increase fluid"], "correct": 1, "rational": "All angina therapies aim to restore the balance between the heart's oxygen needs and the blood supply it receives." }
+        ];
+
+        // Simulate server clock updating without external requests
+        function updateSimulatedClock() {
+            document.getElementById('last-time').textContent = new Date().toLocaleTimeString();
+        }
+        setInterval(updateSimulatedClock, 1000);
+        updateSimulatedClock();
+
+        // --- 2. MCQ Engine Logic ---
+        let questions = [];
+        let currentIdx = 0;
+        let userAnswers = {};
+
+        // Fisher-Yates Shuffle
+        function shuffleArray(array) {
+            // Safety check: ensure array is iterable
+            if (!Array.isArray(array)) return [];
+            
+            let shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Setup Test UI
+        function initializeTestEngine(dataArray) {
+            questions = shuffleArray(dataArray); 
+            currentIdx = 0;
+            userAnswers = {};
+            
+            if (questions.length === 0) {
+                alert("The test could not be started because no valid questions were found.");
+                return;
+            }
+
+            document.getElementById('totalQNum').textContent = questions.length;
+            document.getElementById('uploadContainer').classList.add('hidden');
+            document.getElementById('testContainer').classList.remove('hidden');
+            document.getElementById('testContainer').classList.add('flex');
+            
+            renderQuestion();
+        }
+
+        // Start with default embedded questions
+        window.startWithDefaultBank = () => {
+            initializeTestEngine(embeddedQuestions);
+        };
+
+        // Handle File Upload for custom banks
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    let rawData = JSON.parse(event.target.result);
+                    
+                    // Format Correction: Verify and extract array if necessary
+                    if (!Array.isArray(rawData)) {
+                        // Check if it's a single question object
+                        if (rawData.question && rawData.options) {
+                            rawData = [rawData];
+                        } else {
+                            // Look for an array property within the object (e.g. { "questions": [...] })
+                            const arrayKey = Object.keys(rawData).find(key => Array.isArray(rawData[key]));
+                            if (arrayKey) {
+                                rawData = rawData[arrayKey];
+                            } else {
+                                throw new Error("Could not find an array of questions in the uploaded JSON file.");
+                            }
+                        }
+                    }
+
+                    initializeTestEngine(rawData);
+                } catch (err) {
+                    alert("Error processing JSON file: " + err.message);
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
         });
 
-        updateProgress();
-    }
-
-    function updateProgress() {
-        const percent = ((currentQIndex) / questions.length) * 100;
-        document.getElementById('progress-bar').style.width = `${percent}%`;
-        document.getElementById('rider').style.left = `${percent}%`;
-
-        // Dynamic Evolution
-        const riderIndex = Math.min(Math.floor((percent / 100) * riders.length), riders.length - 1);
-        document.getElementById('rider').innerText = riders[riderIndex] || '🚲';
-    }
-
-    function handleAnswer(selectedIndex, btn, correctIndex) {
-        if (answered) return;
-        answered = true;
-        
-        const mainUi = document.getElementById('quiz-container');
-        const flash = document.getElementById('flash-overlay');
-        const buttons = document.querySelectorAll('.option-btn');
-
-        if (selectedIndex === correctIndex) {
-            // CORRECT ROUTE
-            score++;
-            document.getElementById('score-display').innerText = score;
+        // Render Current Question
+        function renderQuestion() {
+            if (questions.length === 0) return;
             
-            // Happy Bounce & Glow
-            mainUi.classList.add('happy-bounce');
-            flash.classList.add('flash-happy');
-            fireDoubleConfetti(btn.getBoundingClientRect());
+            const q = questions[currentIdx];
+            const qArea = document.getElementById('questionArea');
+            const rationalArea = document.getElementById('rationalArea');
+            
+            // Update UI trackers
+            document.getElementById('currentQNum').textContent = currentIdx + 1;
+            rationalArea.classList.add('hidden');
+            document.getElementById('prevBtn').disabled = currentIdx === 0;
+            
+            // Change Next button to "Finish" on the last question
+            const nextBtn = document.getElementById('nextBtn');
+            if (currentIdx === questions.length - 1) {
+                nextBtn.innerHTML = 'Finish Test &rarr;';
+                nextBtn.classList.replace('bg-gray-900', 'bg-blue-600');
+            } else {
+                nextBtn.innerHTML = 'Next &rarr;';
+                nextBtn.classList.replace('bg-blue-600', 'bg-gray-900');
+            }
 
-            // ROCKET CRUSH ANIMATION
-            btn.classList.add('rocket-fly');
-            buttons.forEach(b => {
-                if (b !== btn) b.classList.add('crushed');
+            // Build Options HTML
+            let optionsHtml = '';
+            q.options.forEach((opt, i) => {
+                let btnClass = 'bg-white hover:bg-gray-50 border-gray-200 text-gray-700';
+                let isDisabled = '';
+                let iconHtml = '';
+
+                // Instant Feedback UI
+                if (userAnswers[currentIdx] !== undefined) {
+                    isDisabled = 'disabled';
+                    
+                    if (i === q.correct) {
+                        btnClass = 'bg-green-50 border-green-500 text-green-900 font-medium ring-1 ring-green-500';
+                        iconHtml = `<svg class="w-5 h-5 text-green-600 float-right" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+                    } else if (userAnswers[currentIdx] === i) {
+                        btnClass = 'bg-red-50 border-red-500 text-red-900 font-medium';
+                        iconHtml = `<svg class="w-5 h-5 text-red-500 float-right" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+                    } else {
+                        btnClass = 'bg-gray-50 border-gray-200 text-gray-400 opacity-60';
+                    }
+                }
+
+                optionsHtml += `
+                    <button ${isDisabled} onclick="selectAnswer(${i})" class="w-full text-left p-4 mb-3 rounded-xl border-2 transition duration-200 ease-in-out ${btnClass}">
+                        <span class="inline-block w-6 font-bold opacity-70">${String.fromCharCode(65 + i)}.</span> 
+                        ${opt}
+                        ${iconHtml}
+                    </button>
+                `;
             });
 
-            setTimeout(() => {
-                mainUi.classList.remove('happy-bounce');
-                flash.classList.remove('flash-happy');
-                currentQIndex++;
-                renderQuestion();
-            }, 2000);
-
-        } else {
-            // WRONG ROUTE (Scary Shake, Stress)
-            mainUi.classList.add('scary-shake');
-            flash.classList.add('flash-scary');
-            document.body.classList.add('stress-beat');
-
-            // Show correct answer by highlighting it
-            buttons[correctIndex].style.background = "#00ffcc";
-            buttons[correctIndex].style.color = "black";
-            buttons[selectedIndex].style.background = "red";
-
-            setTimeout(() => {
-                mainUi.classList.remove('scary-shake');
-                flash.classList.remove('flash-scary');
-                document.body.classList.remove('stress-beat');
-                currentQIndex++;
-                renderQuestion();
-            }, 2000);
+            // Inject into DOM
+            qArea.innerHTML = `
+                <p class="text-xl text-gray-900 font-semibold mb-6 leading-relaxed">${q.question}</p>
+                <div class="space-y-1">
+                    ${optionsHtml}
+                </div>
+            `;
+            
+            if (userAnswers[currentIdx] !== undefined) {
+                showRational();
+            }
         }
-    }
 
-    /* =========================================
-       3. CONFETTI (Double Burst)
-    ========================================= */
-    function fireDoubleConfetti(rect) {
-        // Simple built-in confetti logic to avoid external APIs
-        const createBurst = (delay) => {
+        // Handle User Selection
+        window.selectAnswer = (selectedIndex) => {
+            userAnswers[currentIdx] = selectedIndex;
+            renderQuestion(); 
+            
             setTimeout(() => {
-                for(let i=0; i<30; i++) {
-                    const conf = document.createElement('div');
-                    conf.style.position = 'fixed';
-                    conf.style.left = (rect.left + rect.width/2) + 'px';
-                    conf.style.top = (rect.top + rect.height/2) + 'px';
-                    conf.style.width = '10px'; conf.style.height = '10px';
-                    conf.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
-                    conf.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
-                    conf.style.pointerEvents = 'none';
-                    conf.style.zIndex = '999';
-                    document.body.appendChild(conf);
-
-                    const angle = Math.random() * Math.PI * 2;
-                    const velocity = 5 + Math.random() * 10;
-                    let tx = Math.cos(angle) * velocity * 20;
-                    let ty = Math.sin(angle) * velocity * 20;
-
-                    conf.animate([
-                        { transform: 'translate(0,0) scale(1)', opacity: 1 },
-                        { transform: `translate(${tx}px, ${ty}px) scale(0) rotate(360deg)`, opacity: 0 }
-                    ], { duration: 1000, easing: 'cubic-bezier(0.25, 1, 0.5, 1)' });
-
-                    setTimeout(() => conf.remove(), 1000);
-                }
-            }, delay);
+                document.getElementById('rationalArea').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
         };
-        createBurst(0);
-        createBurst(300); // Stage 2 burst
-    }
 
-    /* =========================================
-       4. POMODORO DRAG & DROP + LOGIC
-    ========================================= */
-    const pomodoro = document.getElementById('pomodoro');
-    let isDragging = false;
-    let offsetX, offsetY;
+        // Display Rationale
+        function showRational() {
+            const q = questions[currentIdx];
+            const rationalArea = document.getElementById('rationalArea');
+            
+            let explanationText = q.rational ? q.rational : "No explanation provided in the question bank for this item.";
+            let isCorrect = userAnswers[currentIdx] === q.correct;
+            
+            let statusBadge = isCorrect 
+                ? `<span class="inline-block px-2 py-1 bg-green-200 text-green-800 rounded text-xs font-bold uppercase tracking-wide mr-2">Correct</span>`
+                : `<span class="inline-block px-2 py-1 bg-red-200 text-red-800 rounded text-xs font-bold uppercase tracking-wide mr-2">Incorrect</span>`;
 
-    pomodoro.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        offsetX = e.clientX - pomodoro.getBoundingClientRect().left;
-        offsetY = e.clientY - pomodoro.getBoundingClientRect().top;
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        let x = e.clientX - offsetX;
-        let y = e.clientY - offsetY;
-        
-        // Screen boundary collision
-        x = Math.max(0, Math.min(x, window.innerWidth - pomodoro.offsetWidth));
-        y = Math.max(0, Math.min(y, window.innerHeight - pomodoro.offsetHeight));
-
-        pomodoro.style.left = `${x}px`;
-        pomodoro.style.top = `${y}px`;
-        pomodoro.style.right = 'auto'; // override default right
-    });
-
-    document.addEventListener('mouseup', () => { isDragging = false; });
-
-    let time = 25 * 60;
-    setInterval(() => {
-        if(time <= 0) return;
-        time--;
-        const m = Math.floor(time / 60).toString().padStart(2, '0');
-        const s = (time % 60).toString().padStart(2, '0');
-        document.getElementById('timer-text').innerText = `${m}:${s}`;
-        
-        // Stress Mode if time < 1 min
-        if(time < 60 && !document.body.classList.contains('stress-beat')) {
-            document.body.classList.add('stress-beat');
-            setTimeout(() => document.body.classList.remove('stress-beat'), 1000);
+            rationalArea.innerHTML = `<div class="mb-2">${statusBadge} <span class="font-bold">Explanation:</span></div> <p class="text-gray-700 leading-relaxed">${explanationText}</p>`;
+            rationalArea.classList.remove('hidden');
         }
-    }, 1000);
 
-    function changePomodoro(themeClass, shapeClass) {
-        pomodoro.className = '';
-        pomodoro.classList.add(themeClass, shapeClass);
-    }
-
-    /* =========================================
-       5. MODALS & BOSS MODE
-    ========================================= */
-    function toggleBossMode() {
-        isBossMode = !isBossMode;
-        if(isBossMode) document.documentElement.classList.add('boss-mode');
-        else document.documentElement.classList.remove('boss-mode');
-    }
-
-    function openThemeModal() { document.getElementById('theme-modal').style.display = 'flex'; }
-    function closeThemeModal() { document.getElementById('theme-modal').style.display = 'none'; }
-    function setTheme(index) { 
-        currentTheme = index; 
-        initThemeData(); 
-        closeThemeModal();
-    }
-
-    /* =========================================
-       6. CANVAS BACKGROUND ENGINE (10 THEMES)
-    ========================================= */
-    const canvas = document.getElementById('bg-canvas');
-    const ctx = canvas.getContext('2d');
-    let width, height;
-    let particles = [];
-    let currentTheme = 5; // Default Matrix Rain
-    let timeVar = 0;
-
-    function resize() {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resize);
-    resize();
-
-    function initThemeData() {
-        particles = [];
-        if (currentTheme === 1 || currentTheme === 2 || currentTheme === 4 || currentTheme === 6 || currentTheme === 8) {
-            // Populate particles for Network, Starfield, Hearts, Bokeh, Hexagons
-            for(let i=0; i<100; i++) {
-                particles.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height,
-                    z: Math.random() * width, // for 3D
-                    vx: (Math.random() - 0.5) * 2,
-                    vy: (Math.random() - 0.5) * 2,
-                    radius: Math.random() * 5 + 1
-                });
+        // Navigation Controls
+        window.nextQ = () => {
+            if (currentIdx < questions.length - 1) {
+                currentIdx++;
+                renderQuestion();
+            } else {
+                finishTest();
             }
-        }
-        if (currentTheme === 5) {
-            // Matrix columns
-            const cols = Math.floor(width / 20);
-            for(let i=0; i<cols; i++) particles.push({ x: i*20, y: Math.random() * height });
-        }
-    }
+        };
 
-    function drawTheme() {
-        ctx.clearRect(0, 0, width, height);
-        timeVar += 0.05;
+        window.prevQ = () => {
+            if (currentIdx > 0) {
+                currentIdx--;
+                renderQuestion();
+            }
+        };
 
-        // Theme Definitions
-        if (currentTheme === 0) { // ECG Pulse
-            ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 3; ctx.beginPath();
-            for(let x=0; x<width; x+=5) {
-                let y = height/2;
-                let offset = (x - (timeVar * 100) % width);
-                if(offset > 0 && offset < 50) y -= Math.sin(offset * 0.2) * 100; // heartbeat spike
-                if(x===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        // Calculate and Show Final Results
+        function finishTest() {
+            let score = 0;
+            let answeredCount = Object.keys(userAnswers).length;
+            
+            if (answeredCount < questions.length) {
+                if (!confirm(`You have only answered ${answeredCount} out of ${questions.length} questions. Are you sure you want to finish?`)) return;
             }
-            ctx.stroke();
-        } 
-        else if (currentTheme === 1) { // Particle Network
-            ctx.fillStyle = '#1dd1a1'; ctx.strokeStyle = 'rgba(29, 209, 161, 0.2)';
-            particles.forEach((p, i) => {
-                p.x += p.vx; p.y += p.vy;
-                if(p.x<0||p.x>width) p.vx*=-1; if(p.y<0||p.y>height) p.vy*=-1;
-                ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI*2); ctx.fill();
-                for(let j=i+1; j<particles.length; j++) {
-                    const p2 = particles[j];
-                    const dist = Math.hypot(p.x-p2.x, p.y-p2.y);
-                    if(dist < 100) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
-                }
-            });
-        }
-        else if (currentTheme === 2) { // Starfield Hyperspace
-            ctx.fillStyle = 'white';
-            particles.forEach(p => {
-                p.z -= 5; if(p.z <= 0) p.z = width;
-                const sx = (p.x - width/2) * (width / p.z) + width/2;
-                const sy = (p.y - height/2) * (width / p.z) + height/2;
-                const r = Math.max(0.1, 3 * (1 - p.z/width));
-                ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI*2); ctx.fill();
-            });
-        }
-        else if (currentTheme === 3) { // DNA Helix
-            ctx.strokeStyle = 'rgba(255,100,100,0.5)'; ctx.fillStyle = '#fff';
-            for(let i=0; i<height; i+=30) {
-                let x1 = width/2 + Math.sin(timeVar + i*0.05) * 100;
-                let x2 = width/2 + Math.sin(timeVar + i*0.05 + Math.PI) * 100;
-                ctx.beginPath(); ctx.moveTo(x1, i); ctx.lineTo(x2, i); ctx.stroke();
-                ctx.beginPath(); ctx.arc(x1, i, 4, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(x2, i, 4, 0, Math.PI*2); ctx.fill();
-            }
-        }
-        else if (currentTheme === 4) { // Floating Hearts
-            ctx.font = '20px Arial';
-            particles.forEach(p => {
-                p.y -= p.radius; if(p.y < -20) p.y = height + 20;
-                ctx.fillText('❤️', p.x + Math.sin(timeVar + p.y*0.01)*20, p.y);
-            });
-        }
-        else if (currentTheme === 5) { // Medical Matrix
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; ctx.fillRect(0,0,width,height);
-            ctx.fillStyle = '#0f0'; ctx.font = '15px monospace';
-            const medTerms = ['ECG', 'CPR', 'DNA', 'RNA', 'CABG', 'PCI', '120/80'];
-            particles.forEach(p => {
-                const text = medTerms[Math.floor(Math.random()*medTerms.length)];
-                ctx.fillText(text, p.x, p.y);
-                p.y += 20; if(p.y > height && Math.random() > 0.95) p.y = 0;
-            });
-        }
-        else if (currentTheme === 6) { // Bokeh Lights
-            particles.forEach(p => {
-                p.y -= p.vy * 0.5; p.x += p.vx * 0.5;
-                if(p.y < -50) p.y = height+50;
-                const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius*10);
-                grad.addColorStop(0, `rgba(255, 200, 100, ${Math.abs(Math.sin(timeVar+p.x)) * 0.3})`);
-                grad.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = grad;
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.radius*10, 0, Math.PI*2); ctx.fill();
-            });
-        }
-        else if (currentTheme === 7) { // Synthwave Grid
-            ctx.strokeStyle = '#ff00ff'; ctx.lineWidth = 2;
-            for(let i=0; i<width; i+=50) {
-                ctx.beginPath(); ctx.moveTo(width/2, height/2); ctx.lineTo(i, height); ctx.stroke();
-            }
-            let yOffset = (timeVar * 20) % 50;
-            for(let j=height/2; j<height; j+= (j-height/2)*0.1 + 5) {
-                ctx.beginPath(); ctx.moveTo(0, j + yOffset); ctx.lineTo(width, j + yOffset); ctx.stroke();
-            }
-            // Sun
-            const sunGrad = ctx.createLinearGradient(0, height/2-150, 0, height/2);
-            sunGrad.addColorStop(0, '#ffeb3b'); sunGrad.addColorStop(1, '#ff00ff');
-            ctx.fillStyle = sunGrad; ctx.beginPath(); ctx.arc(width/2, height/2-50, 100, 0, Math.PI, true); ctx.fill();
-        }
-        else if (currentTheme === 8) { // Hexagon Tech
-            ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 1;
-            particles.forEach(p => {
-                p.y -= p.radius*0.5; if(p.y < -50) p.y = height + 50;
-                ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(timeVar * p.vx);
-                ctx.beginPath();
-                for(let i=0; i<6; i++) {
-                    ctx.lineTo(p.radius*5 * Math.cos(i*Math.PI/3), p.radius*5 * Math.sin(i*Math.PI/3));
-                }
-                ctx.closePath(); ctx.stroke(); ctx.restore();
-            });
-        }
-        else if (currentTheme === 9) { // Aurora Waves
-            const grd = ctx.createLinearGradient(0, 0, width, height);
-            grd.addColorStop(0, `hsla(${(timeVar*10)%360}, 100%, 50%, 0.2)`);
-            grd.addColorStop(1, `hsla(${((timeVar*10)+100)%360}, 100%, 50%, 0.2)`);
-            ctx.fillStyle = grd;
-            ctx.beginPath(); ctx.moveTo(0, height);
-            for(let x=0; x<=width; x+=20) {
-                ctx.lineTo(x, height/2 + Math.sin(x*0.01 + timeVar)*150 + Math.cos(x*0.005 - timeVar)*100);
-            }
-            ctx.lineTo(width, height); ctx.fill();
-        }
 
-        requestAnimationFrame(drawTheme);
-    }
+            questions.forEach((q, i) => {
+                if (userAnswers[i] === q.correct) score++;
+            });
 
-    function initCanvasEngine() {
-        initThemeData();
-        drawTheme();
-    }
-</script>
+            document.getElementById('testContainer').classList.add('hidden');
+            document.getElementById('testContainer').classList.remove('flex');
+            document.getElementById('resultsContainer').classList.remove('hidden');
+            
+            let percentage = Math.round((score / questions.length) * 100);
+            document.getElementById('scoreText').innerHTML = `${score} <span class="text-2xl text-gray-400 font-normal">/ ${questions.length}</span> <div class="text-lg mt-1 text-gray-500 font-medium">(${percentage}%)</div>`;
+        }
+    </script>
 </body>
 </html>
