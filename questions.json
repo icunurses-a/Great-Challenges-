@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "question": "Which of the following laboratory values is most critical to monitor for a patient receiving continuous intravenous heparin therapy?",
+    "options": [
+      "Prothrombin time (PT)",
+      "Activated partial thromboplastin time (aPTT)",
+      "International normalized ratio (INR)",
+      "Platelet count"
+    ],
+    "correctIndex": 1,
+    "explanation": "aPTT is the standard laboratory test used to monitor the effectiveness of continuous intravenous heparin therapy."
+  },
+  {
+    "id": 2,
+    "question": "A patient is prescribed digoxin for heart failure. Which electrolyte imbalance increases the risk of digoxin toxicity?",
+    "options": [
+      "Hypernatremia",
+      "Hypocalcemia",
+      "Hypokalemia",
+      "Hypermagnesemia"
+    ],
+    "correctIndex": 2,
+    "explanation": "Hypokalemia (low potassium levels) sensitizes the myocardium to digoxin, significantly increasing the risk of toxicity."
+  },
+  {
+    "id": 3,
+    "question": "Which blood component is primarily responsible for maintaining oncotic pressure in the vascular system?",
+    "options": [
+      "Erythrocytes",
+      "Fibrinogen",
+      "Albumin",
+      "Globulins"
+    ],
+    "correctIndex": 2,
+    "explanation": "Albumin is the most abundant plasma protein and is the main contributor to intravascular oncotic (colloid osmotic) pressure."
+  }
+]

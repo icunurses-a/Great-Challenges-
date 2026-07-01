@@ -1,326 +1,196 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gamified MCQ Engine</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <title>اختبار MCQ</title>
     <style>
-        :root {
-            --primary: #4F46E5;
-            --success: #10B981;
-            --danger: #EF4444;
-            --bg: #111827;
-            --panel: #1F2937;
-            --text: #F9FAFB;
-        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
         }
-        .game-container {
-            background-color: var(--panel);
-            width: 90%;
-            max-width: 600px;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            text-align: center;
+        .quiz-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        /* Top HUD (Heads Up Display) */
-        .hud {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #374151;
+        .question-block {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
         }
-        .hud-stat {
-            font-size: 1.1rem;
+        .question-text {
+            font-size: 1.2em;
             font-weight: bold;
+            margin-bottom: 15px;
+            direction: ltr; /* لعرض الأسئلة الإنجليزية بشكل صحيح */
+            text-align: left;
         }
-        .pomodoro { color: #F59E0B; }
-        .score { color: var(--success); }
-        .streak { color: #3B82F6; }
-        
-        /* Question Area */
-        #question-text {
-            font-size: 1.4rem;
-            margin-bottom: 24px;
-            font-weight: 600;
+        .options-list {
+            list-style-type: none;
+            padding: 0;
+            direction: ltr;
         }
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
+        .options-list li {
+            margin-bottom: 10px;
         }
-        .option-btn {
-            background-color: #374151;
-            color: white;
-            border: 2px solid transparent;
-            padding: 16px;
-            font-size: 1.1rem;
-            border-radius: 8px;
+        .options-list label {
+            display: flex;
+            align-items: center;
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background 0.2s;
+            border: 1px solid #ddd;
         }
-        .option-btn:hover:not(:disabled) {
-            background-color: #4B5563;
-            transform: translateY(-2px);
+        .options-list label:hover {
+            background: #eef2f5;
         }
-        .option-btn:disabled { cursor: not-allowed; }
-        .correct { background-color: var(--success) !important; color: white; }
-        .wrong { background-color: var(--danger) !important; color: white; }
-        
-        #next-btn, #restart-btn {
-            margin-top: 24px;
-            background-color: var(--primary);
+        .options-list input[type="radio"] {
+            margin-right: 15px;
+            transform: scale(1.2);
+        }
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #0056b3;
             color: white;
             border: none;
-            padding: 12px 24px;
-            font-size: 1.1rem;
-            border-radius: 8px;
+            border-radius: 6px;
+            font-size: 1.1em;
             cursor: pointer;
-            display: none;
-            width: 100%;
-            font-weight: bold;
-        }
-        #next-btn:hover, #restart-btn:hover { background-color: #4338CA; }
-        
-        /* Progress Bar */
-        .progress-container {
-            width: 100%;
-            background-color: #374151;
-            border-radius: 8px;
             margin-top: 20px;
-            height: 10px;
-            overflow: hidden;
         }
-        #progress-bar {
-            height: 100%;
-            background-color: var(--primary);
-            width: 0%;
-            transition: width 0.3s;
+        .btn-submit:hover {
+            background-color: #004494;
         }
+        #result-container {
+            margin-top: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+            text-align: center;
+        }
+        .feedback {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            direction: ltr;
+            text-align: left;
+        }
+        .correct-feedback { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .wrong-feedback { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
 
-<div class="game-container">
-    <div class="hud" id="hud" style="display: none;">
-        <div class="hud-stat pomodoro">🍅 <span id="time">25:00</span></div>
-        <div class="hud-stat score">⭐ Score: <span id="score">0</span></div>
-        <div class="hud-stat streak">🔥 Streak: <span id="streak">0</span></div>
+<div class="quiz-container">
+    <h2 style="text-align: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px;">الاختبار النهائي</h2>
+    <div id="quiz-content">
+        <p style="text-align: center;">جاري تحميل الأسئلة...</p>
     </div>
-
-    <div id="game-area">
-        <h2 id="question-text">Loading qbank.csv...</h2>
-        <div class="options-grid" id="options-grid"></div>
-        <button id="next-btn" onclick="nextQuestion()">Next Question ➔</button>
-        <button id="restart-btn" onclick="location.reload()">Play Again</button>
-        
-        <div class="progress-container" id="progress-container" style="display: none;">
-            <div id="progress-bar"></div>
-        </div>
-    </div>
+    <button class="btn-submit" id="submit-btn" style="display: none;" onclick="calculateScore()">تقديم الإجابات</button>
+    <div id="result-container"></div>
 </div>
 
 <script>
-    // State Variables
-    let questions = [];
-    let currentQuestionIndex = 0;
-    
-    // Gaming Role Variables
-    let score = 0;
-    let streak = 0;
-    let multiplier = 1;
+    let questionsData = [];
 
-    // Pomodoro Role Variables
-    let timeLeft = 25 * 60; // 25 minutes
-    let timerInterval;
-
-    // --- 1. AUTO LOAD & PARSE ROLE ---
-    window.onload = async function() {
+    // دالة لجلب الأسئلة من ملف JSON
+    async function loadQuestions() {
         try {
-            const response = await fetch('qbank.csv');
-            if (!response.ok) throw new Error('File not found');
-            const csvText = await response.text();
-            parseCSV(csvText);
-            
-            if (questions.length > 0) {
-                startGame();
-            } else {
-                showError("qbank.csv is empty or badly formatted.");
-            }
+            const response = await fetch('questions.json');
+            questionsData = await response.json();
+            renderQuestions();
         } catch (error) {
-            showError("Could not load qbank.csv. Are you running a local web server?");
-        }
-    };
-
-    function parseCSV(csvText) {
-        const lines = csvText.split('\n').filter(line => line.trim() !== '');
-        lines.forEach(line => {
-            // Simple split by comma. (Assumes no commas inside the questions/answers)
-            const parts = line.split(',');
-            if (parts.length >= 6) {
-                questions.push({
-                    question: parts[0].trim(),
-                    options: [
-                        { text: parts[1].trim(), isCorrect: parts[5].trim() === '1' },
-                        { text: parts[2].trim(), isCorrect: parts[5].trim() === '2' },
-                        { text: parts[3].trim(), isCorrect: parts[5].trim() === '3' },
-                        { text: parts[4].trim(), isCorrect: parts[5].trim() === '4' }
-                    ]
-                });
-            }
-        });
-    }
-
-    function showError(msg) {
-        document.getElementById('question-text').innerText = msg;
-        document.getElementById('question-text').style.color = "var(--danger)";
-    }
-
-    // --- 2. SHUFFLE ROLE ---
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+            document.getElementById('quiz-content').innerHTML = '<p style="color:red; text-align:center;">حدث خطأ في تحميل بنك الأسئلة. تأكد من تشغيل الصفحة عبر سيرفر محلي (Live Server).</p>';
+            console.error('Error loading questions:', error);
         }
     }
 
-    // --- 3. POMODORO ROLE ---
-    function startPomodoro() {
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            let minutes = Math.floor(timeLeft / 60);
-            let seconds = timeLeft % 60;
-            document.getElementById('time').innerText = 
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    // دالة لعرض الأسئلة في الصفحة
+    function renderQuestions() {
+        const container = document.getElementById('quiz-content');
+        container.innerHTML = ''; // مسح رسالة التحميل
+
+        questionsData.forEach((q, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question-block';
             
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                endGame("Pomodoro session complete!");
-            }
-        }, 1000);
-    }
-
-    // --- CORE GAME LOOP & GAMING ROLE ---
-    function startGame() {
-        shuffleArray(questions); // Shuffle the question bank
-        document.getElementById('hud').style.display = 'flex';
-        document.getElementById('progress-container').style.display = 'block';
-        startPomodoro();
-        loadQuestion();
-    }
-
-    function loadQuestion() {
-        const currentQ = questions[currentQuestionIndex];
-        document.getElementById('question-text').innerText = currentQ.question;
-        const optionsGrid = document.getElementById('options-grid');
-        optionsGrid.innerHTML = '';
-        document.getElementById('next-btn').style.display = 'none';
-
-        // Shuffle options for the current question
-        let shuffledOptions = [...currentQ.options];
-        shuffleArray(shuffledOptions);
-
-        shuffledOptions.forEach((option) => {
-            const button = document.createElement('button');
-            button.innerText = option.text;
-            button.classList.add('option-btn');
-            button.onclick = () => selectAnswer(button, option.isCorrect, shuffledOptions);
-            optionsGrid.appendChild(button);
-        });
-
-        updateProgress();
-    }
-
-    function selectAnswer(selectedBtn, isCorrect, allOptions) {
-        const buttons = document.querySelectorAll('.option-btn');
-        buttons.forEach(btn => btn.disabled = true); // Lock answers
-
-        if (isCorrect) {
-            selectedBtn.classList.add('correct');
-            streak++;
-            multiplier = streak >= 3 ? 2 : 1; // Double points for streak >= 3
-            score += (10 * multiplier);
-            triggerMiniCelebration(); // Mini confetti for correct answer
-        } else {
-            selectedBtn.classList.add('wrong');
-            streak = 0;
-            // Highlight the actual correct answer
-            buttons.forEach(btn => {
-                const optionData = allOptions.find(o => o.text === btn.innerText);
-                if (optionData && optionData.isCorrect) {
-                    btn.classList.add('correct');
-                }
+            // بناء الخيارات
+            let optionsHTML = '';
+            q.options.forEach((opt, optIndex) => {
+                optionsHTML += `
+                    <li>
+                        <label>
+                            <input type="radio" name="question_${index}" value="${optIndex}">
+                            ${opt}
+                        </label>
+                    </li>
+                `;
             });
-        }
 
-        updateHUD();
-        document.getElementById('next-btn').style.display = 'block';
-    }
-
-    function updateHUD() {
-        document.getElementById('score').innerText = score;
-        let streakText = streak;
-        if (streak >= 3) streakText += " (x2 Pts!)";
-        document.getElementById('streak').innerText = streakText;
-    }
-
-    function updateProgress() {
-        const progress = (currentQuestionIndex / questions.length) * 100;
-        document.getElementById('progress-bar').style.width = `${progress}%`;
-    }
-
-    function nextQuestion() {
-        currentQuestionIndex++;
-        if (currentQuestionIndex < questions.length) {
-            loadQuestion();
-        } else {
-            endGame("Quiz Completed!");
-        }
-    }
-
-    // --- 4. CELEBRATION ROLE ---
-    function triggerMiniCelebration() {
-        confetti({
-            particleCount: 30,
-            spread: 50,
-            origin: { y: 0.8 },
-            colors: ['#10B981', '#3B82F6']
+            questionDiv.innerHTML = `
+                <div class="question-text">${index + 1}. ${q.question}</div>
+                <ul class="options-list">
+                    ${optionsHTML}
+                </ul>
+                <div id="feedback_${index}" class="feedback"></div>
+            `;
+            container.appendChild(questionDiv);
         });
+
+        // إظهار زر التقديم بعد تحميل الأسئلة
+        document.getElementById('submit-btn').style.display = 'block';
     }
 
-    function endGame(message) {
-        clearInterval(timerInterval);
-        document.getElementById('question-text').innerText = message;
-        document.getElementById('options-grid').innerHTML = 
-            `<h2>Final Score: ${score}</h2><p>Longest Streak bonus applied!</p>`;
-        document.getElementById('next-btn').style.display = 'none';
-        document.getElementById('restart-btn').style.display = 'block';
-        document.getElementById('progress-bar').style.width = `100%`;
+    // دالة لحساب النتيجة وإظهار التبرير (Explanation)
+    function calculateScore() {
+        let score = 0;
+        let allAnswered = true;
 
-        // Big Celebration Confetti
-        var duration = 3 * 1000;
-        var animationEnd = Date.now() + duration;
-        var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+        questionsData.forEach((q, index) => {
+            const selectedOption = document.querySelector(`input[name="question_${index}"]:checked`);
+            const feedbackDiv = document.getElementById(`feedback_${index}`);
+            
+            if (!selectedOption) {
+                allAnswered = false;
+            } else {
+                const answerValue = parseInt(selectedOption.value);
+                feedbackDiv.style.display = 'block';
 
-        var interval = setInterval(function() {
-            var timeLeft = animationEnd - Date.now();
-            if (timeLeft <= 0) { return clearInterval(interval); }
-            var particleCount = 50 * (timeLeft / duration);
-            confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } }));
-        }, 250);
+                if (answerValue === q.correctIndex) {
+                    score++;
+                    feedbackDiv.className = 'feedback correct-feedback';
+                    feedbackDiv.innerHTML = `<strong>Correct!</strong> <br> ${q.explanation}`;
+                } else {
+                    feedbackDiv.className = 'feedback wrong-feedback';
+                    feedbackDiv.innerHTML = `<strong>Incorrect.</strong> The correct answer was: ${q.options[q.correctIndex]}. <br><br> <em>Explanation:</em> ${q.explanation}`;
+                }
+            }
+        });
+
+        if (!allAnswered) {
+            alert("يرجى الإجابة على جميع الأسئلة قبل التقديم.");
+            return;
+        }
+
+        const resultContainer = document.getElementById('result-container');
+        resultContainer.innerHTML = `النتيجة النهائية: ${score} من ${questionsData.length}`;
+        document.getElementById('submit-btn').disabled = true;
     }
+
+    // بدء تشغيل الدالة عند تحميل الصفحة
+    window.onload = loadQuestions;
 </script>
+
 </body>
 </html>
