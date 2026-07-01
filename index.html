@@ -3,702 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gamified MCQs Engine</title>
-    <!-- Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Canvas Confetti for Celebration Role -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <title>Gamified MCQ Engine</title>
     <style>
-        /* Custom Styles & Animations */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        
+        :root {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --primary: #bb86fc;
+            --correct: #03dac6;
+            --wrong: #cf6679;
+            --text: #ffffff;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-        }
-
-        .option-btn {
-            transition: all 0.2s ease-in-out;
-        }
-        
-        .option-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-
-        .option-btn:active:not(:disabled) {
-            transform: translateY(0);
-        }
-
-        .correct-answer {
-            background-color: #22c55e !important;
-            color: white !important;
-            border-color: #16a34a !important;
-        }
-
-        .wrong-answer {
-            background-color: #ef4444 !important;
-            color: white !important;
-            border-color: #dc2626 !important;
-        }
-
-        .shake {
-            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-        }
-
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
-        }
-
-        /* Toast Notifications */
-        #toast-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 50;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #app-container {
+            background-color: var(--container-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            position: relative;
+        }
+
+        /* Pomodoro & Gaming Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .stat-box {
+            background: #333;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        #timer { color: #ffb74d; }
+        #score-display { color: var(--primary); }
+        #streak-display { color: #ffeb3b; }
+
+        /* Quiz Area */
+        #question {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            min-height: 60px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
             gap: 10px;
         }
-        .toast {
-            background: #1e293b;
+
+        button.option-btn {
+            background-color: #333;
             color: white;
-            padding: 12px 20px;
+            border: 2px solid transparent;
+            padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
-            opacity: 0;
-            transform: translateX(100%);
-            animation: slideIn 0.3s forwards, fadeOut 0.3s forwards 2.7s;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        @keyframes slideIn {
-            to { opacity: 1; transform: translateX(0); }
+
+        button.option-btn:hover {
+            background-color: #444;
+            transform: scale(1.02);
         }
-        @keyframes fadeOut {
-            to { opacity: 0; transform: translateY(10px); }
+
+        button.option-btn:disabled {
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Feedback States */
+        button.option-btn.correct { background-color: var(--correct); color: #000; border-color: var(--correct); }
+        button.option-btn.wrong { background-color: var(--wrong); color: #000; border-color: var(--wrong); }
+
+        /* Celebration Screen */
+        #celebration-screen {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 12px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        #celebration-screen h1 { font-size: 3em; margin-bottom: 10px; }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            animation: fall 3s linear infinite;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(360deg); }
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body>
 
-    <!-- Navbar -->
-    <header class="bg-slate-900 border-b border-slate-700 py-4 px-6 flex justify-between items-center shadow-lg z-10">
-        <div class="flex items-center gap-3">
-            <div class="bg-indigo-500 p-2 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><polygon points="12 2 19 21 12 17 5 21 12 2"></polygon></svg>
-            </div>
-            <h1 class="text-xl font-bold tracking-tight text-white hidden sm:block">QuestEngine</h1>
+    <div id="app-container">
+        <header>
+            <div class="stat-box" id="timer">🍅 25:00</div>
+            <div class="stat-box" id="score-display">Score: 0</div>
+            <div class="stat-box" id="streak-display">🔥 x0</div>
+        </header>
+
+        <main id="quiz-area">
+            <div id="question">Loading questions...</div>
+            <div class="options-grid" id="options-container"></div>
+        </main>
+
+        <div id="celebration-screen">
+            <h1>🎉 You Did It! 🎉</h1>
+            <p>Pomodoro Complete or Questions Finished!</p>
+            <h2 id="final-score">Final Score: 0</h2>
+            <button class="option-btn" onclick="location.reload()" style="background: var(--primary); margin-top: 20px;">Play Again</button>
         </div>
-        
-        <div class="flex items-center gap-4">
-            <!-- File Upload for qbank.json -->
-            <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 border border-slate-600 text-sm font-medium py-2 px-4 rounded-lg transition flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                Load qbank.json
-                <input type="file" id="qbank-upload" accept=".json" class="hidden">
-            </label>
-        </div>
-    </header>
-
-    <!-- Main Content Area -->
-    <main class="flex-grow p-4 md:p-8 flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto w-full">
-        
-        <!-- Left Sidebar: Tools & Gamification -->
-        <aside class="w-full lg:w-80 flex flex-col gap-6">
-            
-            <!-- Pomodoro Role UI -->
-            <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl flex flex-col items-center">
-                <h2 class="text-slate-400 font-semibold uppercase tracking-wider text-xs mb-4 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    Focus Timer
-                </h2>
-                <div id="pomodoro-time" class="text-5xl font-extrabold text-white mb-2 font-mono tracking-tighter">25:00</div>
-                <div id="pomodoro-status" class="text-indigo-400 text-sm mb-6 font-medium">Ready to focus</div>
-                
-                <div class="flex gap-2 w-full">
-                    <button id="pomo-toggle" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-lg transition">Start</button>
-                    <button id="pomo-reset" class="px-4 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 rounded-lg transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Gaming Role UI -->
-            <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
-                <h2 class="text-slate-400 font-semibold uppercase tracking-wider text-xs mb-4 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                    Player Stats
-                </h2>
-                
-                <div class="space-y-4">
-                    <!-- XP / Level -->
-                    <div>
-                        <div class="flex justify-between text-sm mb-1">
-                            <span class="font-medium text-slate-300">Level <span id="player-level" class="text-white font-bold text-lg">1</span></span>
-                            <span class="text-indigo-400 font-mono"><span id="player-xp">0</span> / <span id="player-xp-next">100</span> XP</span>
-                        </div>
-                        <div class="w-full bg-slate-900 rounded-full h-2.5">
-                            <div id="xp-bar" class="bg-indigo-500 h-2.5 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3 pt-2">
-                        <!-- Score -->
-                        <div class="bg-slate-900 rounded-xl p-3 border border-slate-700">
-                            <div class="text-slate-500 text-xs font-semibold mb-1">SCORE</div>
-                            <div id="player-score" class="text-2xl font-bold text-white">0</div>
-                        </div>
-                        <!-- Streak -->
-                        <div class="bg-slate-900 rounded-xl p-3 border border-slate-700 relative overflow-hidden">
-                            <div class="text-slate-500 text-xs font-semibold mb-1">STREAK</div>
-                            <div class="flex items-end gap-1">
-                                <div id="player-streak" class="text-2xl font-bold text-orange-400">0</div>
-                                <div class="text-orange-500/70 text-sm font-bold mb-1">x</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Right Main: Quiz Area -->
-        <section class="flex-grow flex flex-col">
-            
-            <!-- Setup / Status Panel -->
-            <div id="quiz-setup-panel" class="bg-slate-800 rounded-2xl p-8 border border-slate-700 shadow-xl text-center flex-grow flex flex-col justify-center items-center">
-                <div class="w-20 h-20 bg-indigo-500/20 rounded-full flex items-center justify-center mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-                </div>
-                <h2 class="text-3xl font-bold text-white mb-2">Ready to Learn?</h2>
-                <p class="text-slate-400 mb-8 max-w-md">Upload your <code>qbank.json</code> file using the button in the header, or start right away with our default sample questions.</p>
-                <div class="text-sm font-medium text-slate-500 mb-8 bg-slate-900 px-4 py-2 rounded-lg">
-                    Loaded Questions: <span id="q-count" class="text-white">0</span>
-                </div>
-                <button id="btn-start-quiz" class="bg-indigo-600 hover:bg-indigo-500 text-white text-lg font-semibold py-4 px-10 rounded-xl transition shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed">
-                    Start Quiz Session
-                </button>
-            </div>
-
-            <!-- Active Quiz Panel (Hidden initially) -->
-            <div id="quiz-active-panel" class="hidden flex-grow flex flex-col h-full">
-                <!-- Progress -->
-                <div class="mb-4">
-                    <div class="flex justify-between text-sm text-slate-400 mb-2 font-medium">
-                        <span>Question <span id="current-q-num" class="text-white">1</span> of <span id="total-q-num">10</span></span>
-                        <span id="quiz-accuracy">Accuracy: 100%</span>
-                    </div>
-                    <div class="w-full bg-slate-800 rounded-full h-2">
-                        <div id="quiz-progress-bar" class="bg-indigo-500 h-2 rounded-full transition-all duration-300" style="width: 10%"></div>
-                    </div>
-                </div>
-
-                <!-- Question Card -->
-                <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-xl flex-grow flex flex-col p-6 md:p-10 relative overflow-hidden">
-                    
-                    <div class="flex-grow">
-                        <h3 id="question-text" class="text-2xl md:text-3xl font-bold text-white mb-8 leading-tight">
-                            Loading question...
-                        </h3>
-                        
-                        <div id="options-container" class="grid grid-cols-1 gap-4">
-                            <!-- Options injected by JS -->
-                        </div>
-                    </div>
-
-                    <!-- Action Area -->
-                    <div class="mt-8 pt-6 border-t border-slate-700 flex justify-between items-center h-14">
-                        <div id="feedback-message" class="text-lg font-bold"></div>
-                        <button id="btn-next-q" class="hidden bg-white hover:bg-slate-200 text-slate-900 font-bold py-3 px-8 rounded-xl transition">
-                            Next Question →
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Results Panel (Hidden initially) -->
-            <div id="quiz-results-panel" class="hidden bg-slate-800 rounded-2xl p-8 border border-slate-700 shadow-xl text-center flex-grow flex flex-col justify-center items-center">
-                <div class="text-6xl mb-4">🏆</div>
-                <h2 class="text-4xl font-bold text-white mb-2">Session Complete!</h2>
-                <p class="text-slate-400 mb-8">Great job working on your knowledge base.</p>
-                
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-2xl mb-10">
-                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
-                        <div class="text-slate-500 text-xs font-semibold mb-1">CORRECT</div>
-                        <div id="res-correct" class="text-3xl font-bold text-green-400">0</div>
-                    </div>
-                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
-                        <div class="text-slate-500 text-xs font-semibold mb-1">INCORRECT</div>
-                        <div id="res-incorrect" class="text-3xl font-bold text-red-400">0</div>
-                    </div>
-                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
-                        <div class="text-slate-500 text-xs font-semibold mb-1">XP EARNED</div>
-                        <div id="res-xp" class="text-3xl font-bold text-indigo-400">+0</div>
-                    </div>
-                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
-                        <div class="text-slate-500 text-xs font-semibold mb-1">BEST STREAK</div>
-                        <div id="res-streak" class="text-3xl font-bold text-orange-400">0</div>
-                    </div>
-                </div>
-
-                <div class="flex gap-4">
-                    <button id="btn-restart" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-8 rounded-xl transition">
-                        Play Again
-                    </button>
-                </div>
-            </div>
-
-        </section>
-    </main>
-
-    <div id="toast-container"></div>
+    </div>
 
     <script>
-        // --- UTILITIES ---
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast border-l-4 ${type === 'error' ? 'border-red-500' : 'border-indigo-500'}`;
-            toast.innerText = message;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+        /* --- GAME STATE --- */
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let streak = 0;
+        let pomodoroTime = 25 * 60; // 25 minutes in seconds
+        let timerInterval;
+
+        /* --- 1. DATA LOADING ROLE --- */
+        // Automatically fetches qbank.json when the page opens.
+        async function loadQBank() {
+            try {
+                const response = await fetch('qbank.json');
+                if (!response.ok) throw new Error('File not found');
+                const data = await response.json();
+                questions = data;
+                startGame();
+            } catch (error) {
+                console.warn("Could not load qbank.json. Using fallback mock data.");
+                // Fallback data so the engine works even without a local server
+                questions = [
+                    { question: "What does HTML stand for?", options: ["Hyper Text Markup Language", "High Tech Modern Language", "Hyperlink and Text Markup Language", "Home Tool Markup Language"], answer: "Hyper Text Markup Language" },
+                    { question: "Which CSS property controls the text size?", options: ["font-style", "text-size", "font-size", "text-style"], answer: "font-size" },
+                    { question: "Inside which HTML element do we put the JavaScript?", options: ["<javascript>", "<scripting>", "<js>", "<script>"], answer: "<script>" }
+                ];
+                startGame();
+            }
         }
 
-        // --- ROLE 1: SHUFFLER ROLE ---
-        // Responsible for randomizing arrays using Fisher-Yates algorithm
-        const ShufflerRole = {
-            shuffle(array) {
-                let currentIndex = array.length, randomIndex;
-                const shuffled = [...array]; // prevent mutating original
-                while (currentIndex !== 0) {
-                    randomIndex = Math.floor(Math.random() * currentIndex);
-                    currentIndex--;
-                    [shuffled[currentIndex], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[currentIndex]];
-                }
-                return shuffled;
+        /* --- 2. SHUFFLING ROLE --- */
+        // Fisher-Yates Shuffle Algorithm
+        function shuffleArray(array) {
+            let shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
             }
-        };
+            return shuffled;
+        }
 
-        // --- ROLE 2: DATA LOADER ROLE ---
-        // Responsible for handling default questions and loading custom qbank.json
-        const DataLoaderRole = {
-            questions: [],
-            defaultQuestions: [
-                {
-                    "question": "What does HTML stand for?",
-                    "options": ["Hyper Text Markup Language", "Home Tool Markup Language", "Hyperlinks and Text Markup Language", "Hyper Tool Markup Language"],
-                    "answer": "Hyper Text Markup Language"
-                },
-                {
-                    "question": "Which of the following is not a JavaScript framework?",
-                    "options": ["Django", "React", "Angular", "Vue"],
-                    "answer": "Django"
-                },
-                {
-                    "question": "What is the CSS property used to change text color?",
-                    "options": ["color", "text-color", "fgcolor", "font-color"],
-                    "answer": "color"
-                },
-                {
-                    "question": "What does API stand for?",
-                    "options": ["Application Programming Interface", "Apple Programming Interface", "Application Program Interface", "Advanced Programming Interface"],
-                    "answer": "Application Programming Interface"
-                },
-                {
-                    "question": "Which HTTP method is used to update data?",
-                    "options": ["PUT", "GET", "POST", "DELETE"],
-                    "answer": "PUT"
+        /* --- 3. POMODORO TIMER ROLE --- */
+        function startPomodoro() {
+            const timerElement = document.getElementById('timer');
+            timerInterval = setInterval(() => {
+                if (pomodoroTime <= 0) {
+                    clearInterval(timerInterval);
+                    triggerCelebration("🍅 Focus Session Complete!");
+                    return;
                 }
-            ],
+                pomodoroTime--;
+                let minutes = Math.floor(pomodoroTime / 60);
+                let seconds = pomodoroTime % 60;
+                timerElement.innerText = `🍅 ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
 
-            init() {
-                // Load default
-                this.loadQuestions(this.defaultQuestions);
+        /* --- 4. GAMING & MCQ UI ROLE --- */
+        function startGame() {
+            questions = shuffleArray(questions); // Shuffle questions
+            score = 0;
+            streak = 0;
+            currentQuestionIndex = 0;
+            updateStats();
+            startPomodoro();
+            renderQuestion();
+        }
 
-                // Setup File Upload Listener
-                document.getElementById('qbank-upload').addEventListener('change', (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        try {
-                            const parsed = JSON.parse(event.target.result);
-                            if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].question) {
-                                this.loadQuestions(parsed);
-                                showToast(`Successfully loaded ${parsed.length} questions!`);
-                                QuizApp.resetToSetup();
-                            } else {
-                                throw new Error("Invalid format");
-                            }
-                        } catch (err) {
-                            showToast("Invalid JSON file format. Needs array of objects with 'question', 'options', 'answer'.", 'error');
-                        }
-                    };
-                    reader.readAsText(file);
-                });
-            },
-
-            loadQuestions(qArray) {
-                this.questions = qArray;
-                document.getElementById('q-count').innerText = this.questions.length;
-                document.getElementById('btn-start-quiz').disabled = this.questions.length === 0;
+        function renderQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                triggerCelebration("🏆 Quiz Completed!");
+                return;
             }
-        };
 
-        // --- ROLE 3: POMODORO ROLE ---
-        // Responsible for study time management
-        const PomodoroRole = {
-            timeLeft: 25 * 60, // 25 mins in seconds
-            timerId: null,
-            isFocus: true,
-
-            init() {
-                this.updateDisplay();
-                document.getElementById('pomo-toggle').addEventListener('click', () => this.toggle());
-                document.getElementById('pomo-reset').addEventListener('click', () => this.reset());
-            },
-
-            toggle() {
-                const btn = document.getElementById('pomo-toggle');
-                if (this.timerId) {
-                    clearInterval(this.timerId);
-                    this.timerId = null;
-                    btn.innerText = "Start";
-                    btn.classList.replace('bg-orange-500', 'bg-indigo-600');
-                    btn.classList.replace('hover:bg-orange-400', 'hover:bg-indigo-500');
-                } else {
-                    this.timerId = setInterval(() => this.tick(), 1000);
-                    btn.innerText = "Pause";
-                    btn.classList.replace('bg-indigo-600', 'bg-orange-500');
-                    btn.classList.replace('hover:bg-indigo-500', 'hover:bg-orange-400');
-                }
-            },
-
-            tick() {
-                if (this.timeLeft > 0) {
-                    this.timeLeft--;
-                    this.updateDisplay();
-                } else {
-                    this.completeSession();
-                }
-            },
-
-            updateDisplay() {
-                const m = Math.floor(this.timeLeft / 60).toString().padStart(2, '0');
-                const s = (this.timeLeft % 60).toString().padStart(2, '0');
-                document.getElementById('pomodoro-time').innerText = `${m}:${s}`;
-            },
-
-            reset() {
-                if (this.timerId) clearInterval(this.timerId);
-                this.timerId = null;
-                this.isFocus = true;
-                this.timeLeft = 25 * 60;
-                this.updateDisplay();
-                
-                const btn = document.getElementById('pomo-toggle');
-                btn.innerText = "Start";
-                btn.classList.replace('bg-orange-500', 'bg-indigo-600');
-                btn.classList.replace('hover:bg-orange-400', 'hover:bg-indigo-500');
-                document.getElementById('pomodoro-status').innerText = "Ready to focus";
-                document.getElementById('pomodoro-status').className = "text-indigo-400 text-sm mb-6 font-medium";
-            },
-
-            completeSession() {
-                CelebrationRole.fireMini();
-                if (this.timerId) clearInterval(this.timerId);
-                this.timerId = null;
-                
-                if (this.isFocus) {
-                    showToast("Focus session complete! Take a 5 min break.");
-                    this.isFocus = false;
-                    this.timeLeft = 5 * 60;
-                    document.getElementById('pomodoro-status').innerText = "Break Time";
-                    document.getElementById('pomodoro-status').className = "text-green-400 text-sm mb-6 font-medium";
-                } else {
-                    showToast("Break over! Ready to focus again?");
-                    this.isFocus = true;
-                    this.timeLeft = 25 * 60;
-                    document.getElementById('pomodoro-status').innerText = "Ready to focus";
-                    document.getElementById('pomodoro-status').className = "text-indigo-400 text-sm mb-6 font-medium";
-                }
-                
-                this.updateDisplay();
-                const btn = document.getElementById('pomo-toggle');
-                btn.innerText = "Start";
-                btn.classList.replace('bg-orange-500', 'bg-indigo-600');
-            }
-        };
-
-        // --- ROLE 4: GAMING ROLE ---
-        // Responsible for XP, Levels, Score, and Streaks
-        const GamingRole = {
-            score: 0,
-            streak: 0,
-            bestStreak: 0,
-            xp: 0,
-            level: 1,
-            xpNextLevel: 100,
-
-            init() {
-                this.updateUI();
-            },
-
-            answerCorrect() {
-                this.streak++;
-                if (this.streak > this.bestStreak) this.bestStreak = this.streak;
-                
-                // Base score 10 + Streak Bonus
-                const pointsEarned = 10 + (this.streak * 2);
-                this.score += pointsEarned;
-                this.addXP(pointsEarned);
-                
-                this.updateUI();
-                
-                // Milestone celebrations
-                if (this.streak % 5 === 0) {
-                    showToast(`🔥 ${this.streak} STREAK! On fire!`);
-                    CelebrationRole.fireMini();
-                }
-            },
-
-            answerWrong() {
-                this.streak = 0;
-                this.updateUI();
-            },
-
-            addXP(amount) {
-                this.xp += amount;
-                while (this.xp >= this.xpNextLevel) {
-                    this.xp -= this.xpNextLevel;
-                    this.level++;
-                    this.xpNextLevel = Math.floor(this.xpNextLevel * 1.5); // Increase required XP per level
-                    showToast(`🌟 LEVEL UP! You are now level ${this.level}`);
-                    CelebrationRole.fireFull();
-                }
-            },
-
-            updateUI() {
-                // Animate score counter
-                const scoreEl = document.getElementById('player-score');
-                scoreEl.innerText = this.score;
-                
-                document.getElementById('player-streak').innerText = this.streak;
-                document.getElementById('player-level').innerText = this.level;
-                document.getElementById('player-xp').innerText = this.xp;
-                document.getElementById('player-xp-next').innerText = this.xpNextLevel;
-                
-                const percent = (this.xp / this.xpNextLevel) * 100;
-                document.getElementById('xp-bar').style.width = `${percent}%`;
-            }
-        };
-
-        // --- ROLE 5: CELEBRATION ROLE ---
-        // Wraps canvas-confetti logic
-        const CelebrationRole = {
-            fireFull() {
-                if(typeof confetti === 'undefined') return;
-                const duration = 3000;
-                const end = Date.now() + duration;
-
-                (function frame() {
-                    confetti({
-                        particleCount: 5,
-                        angle: 60,
-                        spread: 55,
-                        origin: { x: 0 },
-                        colors: ['#4f46e5', '#22c55e', '#f59e0b']
-                    });
-                    confetti({
-                        particleCount: 5,
-                        angle: 120,
-                        spread: 55,
-                        origin: { x: 1 },
-                        colors: ['#4f46e5', '#22c55e', '#f59e0b']
-                    });
-
-                    if (Date.now() < end) {
-                        requestAnimationFrame(frame);
-                    }
-                }());
-            },
+            const currentQ = questions[currentQuestionIndex];
+            document.getElementById('question').innerText = currentQ.question;
             
-            fireMini() {
-                if(typeof confetti === 'undefined') return;
-                confetti({
-                    particleCount: 50,
-                    spread: 60,
-                    origin: { y: 0.8 },
-                    colors: ['#f59e0b', '#ef4444']
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = ''; // Clear previous
+
+            // Shuffle options for the current question
+            const shuffledOptions = shuffleArray(currentQ.options);
+
+            shuffledOptions.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = option;
+                btn.onclick = () => handleAnswer(btn, option, currentQ.answer);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(btn, selectedOption, correctOption) {
+            // Disable all buttons
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.disabled = true);
+
+            if (selectedOption === correctOption) {
+                // Correct Answer Logic
+                btn.classList.add('correct');
+                streak++;
+                score += (10 * streak); // Gamification: Score multiplier based on streak
+            } else {
+                // Wrong Answer Logic
+                btn.classList.add('wrong');
+                streak = 0; // Break streak
+                // Highlight the correct one
+                allBtns.forEach(b => {
+                    if (b.innerText === correctOption) b.classList.add('correct');
                 });
             }
-        };
 
+            updateStats();
+            
+            // Wait 1.5 seconds, then load next question
+            setTimeout(() => {
+                currentQuestionIndex++;
+                renderQuestion();
+            }, 1500);
+        }
 
-        // --- MAIN APP LOGIC ---
-        const QuizApp = {
-            activeQuestions: [],
-            currentIndex: 0,
-            stats: { correct: 0, incorrect: 0, xpStart: 0 },
-            isAnswered: false,
+        function updateStats() {
+            document.getElementById('score-display').innerText = `Score: ${score}`;
+            document.getElementById('streak-display').innerText = `🔥 x${streak}`;
+        }
 
-            init() {
-                DataLoaderRole.init();
-                PomodoroRole.init();
-                GamingRole.init();
-
-                document.getElementById('btn-start-quiz').addEventListener('click', () => this.startQuiz());
-                document.getElementById('btn-next-q').addEventListener('click', () => this.nextQuestion());
-                document.getElementById('btn-restart').addEventListener('click', () => this.resetToSetup());
-            },
-
-            resetToSetup() {
-                document.getElementById('quiz-setup-panel').classList.remove('hidden');
-                document.getElementById('quiz-active-panel').classList.add('hidden');
-                document.getElementById('quiz-results-panel').classList.add('hidden');
-            },
-
-            startQuiz() {
-                if (DataLoaderRole.questions.length === 0) return;
-                
-                // Track start state for results screen
-                this.stats = { correct: 0, incorrect: 0, xpStart: GamingRole.xp + (GamingRole.level * 1000) }; // Rough calc for delta
-                GamingRole.bestStreak = 0; // Reset session best streak
-                
-                // Shuffle questions
-                this.activeQuestions = ShufflerRole.shuffle(DataLoaderRole.questions);
-                this.currentIndex = 0;
-                
-                document.getElementById('quiz-setup-panel').classList.add('hidden');
-                document.getElementById('quiz-results-panel').classList.add('hidden');
-                document.getElementById('quiz-active-panel').classList.remove('hidden');
-                document.getElementById('total-q-num').innerText = this.activeQuestions.length;
-                
-                this.renderQuestion();
-            },
-
-            renderQuestion() {
-                this.isAnswered = false;
-                const qData = this.activeQuestions[this.currentIndex];
-                
-                // Update Progress
-                document.getElementById('current-q-num').innerText = this.currentIndex + 1;
-                const progress = ((this.currentIndex) / this.activeQuestions.length) * 100;
-                document.getElementById('quiz-progress-bar').style.width = `${progress}%`;
-
-                // Update Accuracy
-                const totalAnswered = this.stats.correct + this.stats.incorrect;
-                const accuracy = totalAnswered === 0 ? 100 : Math.round((this.stats.correct / totalAnswered) * 100);
-                document.getElementById('quiz-accuracy').innerText = `Accuracy: ${accuracy}%`;
-                
-                // Populate Question
-                document.getElementById('question-text').innerText = qData.question;
-                
-                // Populate Options (Shuffled!)
-                const optionsContainer = document.getElementById('options-container');
-                optionsContainer.innerHTML = '';
-                
-                const shuffledOptions = ShufflerRole.shuffle(qData.options);
-                
-                shuffledOptions.forEach((optionText, index) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'option-btn w-full text-left bg-slate-700/50 hover:bg-slate-700 border border-slate-600 rounded-xl p-4 md:p-5 text-lg font-medium text-slate-200';
-                    
-                    // Add index letter (A, B, C, D)
-                    const letter = String.fromCharCode(65 + index);
-                    btn.innerHTML = `<span class="inline-block w-8 font-bold text-indigo-400">${letter}</span> ${optionText}`;
-                    
-                    btn.onclick = () => this.handleAnswer(btn, optionText, qData.answer, optionsContainer);
-                    optionsContainer.appendChild(btn);
-                });
-
-                // Reset Action Area
-                document.getElementById('feedback-message').innerText = '';
-                document.getElementById('btn-next-q').classList.add('hidden');
-            },
-
-            handleAnswer(clickedBtn, selectedText, correctText, container) {
-                if (this.isAnswered) return;
-                this.isAnswered = true;
-
-                const isCorrect = selectedText === correctText;
-                const buttons = container.querySelectorAll('button');
-                
-                // Disable all buttons and show correct answer
-                buttons.forEach(btn => {
-                    btn.disabled = true;
-                    btn.classList.add('opacity-80', 'cursor-default');
-                    
-                    // Find actual text by stripping the A/B/C span
-                    const btnText = btn.innerText.substring(2).trim(); 
-                    
-                    if (btnText === correctText) {
-                        btn.classList.add('correct-answer');
-                        btn.classList.remove('bg-slate-700/50', 'border-slate-600');
-                    }
-                });
-
-                const feedback = document.getElementById('feedback-message');
-                if (isCorrect) {
-                    this.stats.correct++;
-                    GamingRole.answerCorrect();
-                    feedback.innerHTML = '<span class="text-green-400 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Excellent!</span>';
-                } else {
-                    this.stats.incorrect++;
-                    GamingRole.answerWrong();
-                    clickedBtn.classList.add('wrong-answer', 'shake');
-                    clickedBtn.classList.remove('bg-slate-700/50', 'border-slate-600');
-                    feedback.innerHTML = '<span class="text-red-400 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg> Incorrect</span>';
-                }
-
-                // Show next button
-                document.getElementById('btn-next-q').classList.remove('hidden');
-            },
-
-            nextQuestion() {
-                this.currentIndex++;
-                if (this.currentIndex < this.activeQuestions.length) {
-                    this.renderQuestion();
-                } else {
-                    this.endQuiz();
-                }
-            },
-
-            endQuiz() {
-                document.getElementById('quiz-active-panel').classList.add('hidden');
-                const resultsPanel = document.getElementById('quiz-results-panel');
-                resultsPanel.classList.remove('hidden');
-                
-                // Update Final Progress Bar
-                document.getElementById('quiz-progress-bar').style.width = `100%`;
-
-                // Calculate Session XP Earned (Rough approximation for display)
-                const currentTotalXp = GamingRole.xp + (GamingRole.level * 1000);
-                const xpEarned = Math.max(0, currentTotalXp - this.stats.xpStart); // Ensure non-negative if leveling up causes wrap
-
-                document.getElementById('res-correct').innerText = this.stats.correct;
-                document.getElementById('res-incorrect').innerText = this.stats.incorrect;
-                document.getElementById('res-xp').innerText = `+${this.stats.correct * 10 + (GamingRole.bestStreak * 2)}`; // Simple display calc
-                document.getElementById('res-streak').innerText = GamingRole.bestStreak;
-
-                // Full Celebration if they did well!
-                if (this.stats.correct === this.activeQuestions.length && this.activeQuestions.length > 0) {
-                    CelebrationRole.fireFull();
-                    showToast("Perfect Score! 🌟");
-                } else {
-                    CelebrationRole.fireMini();
-                }
+        /* --- 5. CELEBRATION ROLE --- */
+        function triggerCelebration(message) {
+            clearInterval(timerInterval); // Stop timer
+            const celebScreen = document.getElementById('celebration-screen');
+            celebScreen.style.display = 'flex';
+            celebScreen.querySelector('p').innerText = message;
+            document.getElementById('final-score').innerText = `Final Score: ${score}`;
+            
+            // Simple Confetti Generator
+            for(let i = 0; i < 50; i++) {
+                let confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(confetti);
             }
-        };
+        }
 
-        // Initialize App on Load
-        document.addEventListener('DOMContentLoaded', () => {
-            QuizApp.init();
-        });
-
+        // Initialize App on Page Load
+        window.onload = loadQBank;
     </script>
 </body>
 </html>
