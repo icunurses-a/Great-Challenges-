@@ -3,358 +3,397 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive MCQ Test Engine</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 min-h-screen p-4 md:p-8 font-sans">
-
-    <div class="max-w-3xl mx-auto space-y-6">
+    <title>Gamified MCQ Simulator</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --accent: #bb86fc;
+            --correct: #03dac6;
+            --wrong: #cf6679;
+            --timer-bg: #333;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .container {
+            background-color: var(--container-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            position: relative;
+        }
+        .hidden { display: none !important; }
         
-        <!-- System Status Header -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <div>
-                <h2 class="text-xl font-bold text-gray-900 mb-1">System Monitor</h2>
-                <p class="text-sm text-gray-500">Standalone Local Mode</p>
-            </div>
-            <div class="mt-4 sm:mt-0 text-sm bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <p><strong>Status:</strong> <span id="server-status" class="text-green-600 font-medium">All Systems Operational</span></p>
-                <p><strong>Last Updated:</strong> <span id="last-time" class="text-gray-700">--:--</span></p>
-            </div>
-        </div>
+        /* Buttons */
+        button {
+            background-color: var(--accent);
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            margin: 10px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.8; }
+        button:disabled { background-color: var(--text-muted); cursor: not-allowed; }
+        
+        .option-btn {
+            display: block;
+            width: 100%;
+            background-color: #2c2c2c;
+            color: var(--text-main);
+            margin: 8px 0;
+            text-align: left;
+            border: 1px solid #444;
+        }
+        .option-btn:hover { background-color: #3d3d3d; border-color: var(--accent); }
+        .option-btn.correct { background-color: var(--correct); color: #000; border-color: var(--correct); }
+        .option-btn.wrong { background-color: var(--wrong); color: #000; border-color: var(--wrong); }
 
-        <!-- Main Test Application -->
-        <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 relative min-h-[400px]">
-            
-            <!-- Start / Upload Section (Shown initially) -->
-            <div id="uploadContainer" class="block">
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">Pharmacology MCQ Test</h1>
-                <p class="text-gray-500 text-sm mb-8">Test your knowledge. Questions are automatically shuffled.</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Default Bank Option -->
-                    <div class="bg-blue-50 p-6 rounded-xl border border-blue-100 flex flex-col justify-between">
-                        <div>
-                            <h3 class="font-bold text-blue-900 text-lg mb-2">Use Default Bank</h3>
-                            <p class="text-blue-700 text-sm mb-4">Start immediately with the pre-loaded 30-question Pharmacology bank.</p>
-                        </div>
-                        <button onclick="startWithDefaultBank()" class="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition shadow-sm">
-                            Start Test Now
-                        </button>
-                    </div>
+        /* File Upload Fallback */
+        .file-upload { margin-top: 20px; padding-top: 20px; border-top: 1px solid #444; }
+        input[type="file"] { color: var(--text-muted); }
 
-                    <!-- Upload Option -->
-                    <div class="bg-gray-50 p-6 rounded-xl border-2 border-dashed border-gray-300 flex flex-col justify-between">
-                        <div>
-                            <h3 class="font-bold text-gray-800 text-lg mb-2">Upload Custom Bank</h3>
-                            <p class="text-gray-600 text-sm mb-4">Have your own JSON file? Upload it here to take a custom test.</p>
-                        </div>
-                        <label class="w-full text-center px-6 py-3 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition shadow-sm cursor-pointer">
-                            Browse Files
-                            <input type="file" id="fileInput" accept=".json" class="hidden">
-                        </label>
-                    </div>
-                </div>
-            </div>
+        /* Timers */
+        .header-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+        .timer-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--timer-bg);
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .timer-bar {
+            height: 100%;
+            background-color: var(--accent);
+            width: 100%;
+            transition: width 1s linear;
+        }
+        .timer-warning { background-color: var(--wrong); }
 
-            <!-- Test Section (Hidden initially) -->
-            <div id="testContainer" class="hidden flex-col h-full">
-                <!-- Progress Indicator -->
-                <div class="mb-6 flex justify-between items-end border-b pb-4">
-                    <h2 class="text-xl font-bold text-gray-800">Question <span id="currentQNum">1</span> of <span id="totalQNum">?</span></h2>
-                    <span id="scoreTracker" class="text-sm font-medium text-gray-500"></span>
-                </div>
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
 
-                <!-- Question and Options -->
-                <div id="questionArea" class="flex-grow">
-                    <!-- Content injected via JS -->
-                </div>
+<canvas id="confetti-canvas" class="hidden"></canvas>
 
-                <!-- Rationale Area -->
-                <div id="rationalArea" class="mt-6 p-4 bg-blue-50 text-blue-900 rounded-xl hidden text-sm font-medium border border-blue-100 shadow-inner">
-                    <!-- Rationale injected via JS -->
-                </div>
-
-                <!-- Navigation Controls -->
-                <div class="mt-8 pt-6 border-t flex justify-between items-center">
-                    <button id="prevBtn" onclick="prevQ()" class="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        &larr; Previous
-                    </button>
-                    <button id="nextBtn" onclick="nextQ()" class="px-5 py-2.5 bg-gray-900 text-white font-medium rounded-lg hover:bg-black transition">
-                        Next &rarr;
-                    </button>
-                </div>
-            </div>
-
-            <!-- Results Section (Hidden initially) -->
-            <div id="resultsContainer" class="hidden text-center py-12">
-                <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-                    <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-                <h2 class="text-3xl font-bold text-gray-900 mb-2">Test Complete!</h2>
-                <p class="text-gray-500 mb-6">Here is how you performed on this attempt.</p>
-                <div class="bg-gray-50 p-6 rounded-xl border inline-block min-w-[250px] mb-8">
-                    <p class="text-sm text-gray-500 uppercase tracking-wider font-semibold mb-1">Final Score</p>
-                    <p id="scoreText" class="text-4xl font-black text-blue-600"></p>
-                </div>
-                <div>
-                    <button onclick="location.reload()" class="px-8 py-3 bg-gray-900 text-white font-semibold rounded-xl hover:bg-black transition shadow-lg">
-                        Return to Home
-                    </button>
-                </div>
-            </div>
-
-        </div>
+<div class="container" id="setup-screen">
+    <h2>MCQ Training Simulator</h2>
+    <p id="load-status">Attempting to auto-load qbank.json...</p>
+    
+    <div id="mode-selection" class="hidden">
+        <h3>Select Game Mode</h3>
+        <button onclick="startGame('normal')">Normal (Untimed)</button>
+        <button onclick="startGame('pomodoro')">Pomodoro (25 Min Session)</button>
+        <button onclick="startGame('stress')">Stress Mode (15s / Question)</button>
     </div>
 
-    <script>
-        // --- 1. Embedded Data (Standalone Mode) ---
-        const embeddedQuestions = [
-            { "question": "A patient develops chest pain during exercise that is relieved by rest. What type of angina?", "options": ["Unstable angina", "Stable angina", "Variant angina", "MI"], "correct": 1, "rational": "Stable angina is predictably triggered by exertion and relieved by rest." },
-            { "question": "A patient has chest pain at rest and not relieved by nitroglycerin. Diagnosis?", "options": ["Stable angina", "Unstable angina", "Variant angina", "Normal pain"], "correct": 1, "rational": "Unstable angina occurs at rest and is often unresponsive to standard nitrate therapy, signaling an acute risk." },
-            { "question": "Which mechanism causes unstable angina?", "options": ["Fixed narrowing", "Plaque rupture with clot", "Infection", "Low BP"], "correct": 1, "rational": "Unstable angina is typically caused by a sudden plaque rupture and partial thrombosis in a coronary artery." },
-            { "question": "A patient experiences chest pain at night due to vasospasm. Diagnosis?", "options": ["Stable angina", "Unstable angina", "Variant angina", "MI"], "correct": 2, "rational": "Variant (Prinzmetal) angina is caused by coronary artery vasospasm, often occurring at rest or night." },
-            { "question": "Which drug is FIRST used in acute angina attack?", "options": ["Antibiotics", "Nitroglycerin", "Insulin", "Diuretics"], "correct": 1, "rational": "Nitroglycerin provides rapid vasodilation to quickly relieve acute angina." },
-            { "question": "Nitroglycerin works by:", "options": ["Vasoconstriction", "Vasodilation", "Increasing HR", "Increasing BP"], "correct": 1, "rational": "Nitroglycerin is a potent vasodilator, reducing venous return (preload) and decreasing myocardial oxygen demand." },
-            { "question": "A patient feels dizzy after taking nitrate. Cause?", "options": ["Hypertension", "Hypotension", "Infection", "Hyperglycemia"], "correct": 1, "rational": "Nitrates cause systemic vasodilation, which can drop blood pressure leading to dizziness (hypotension)." },
-            { "question": "Which parameter decreases with nitrates?", "options": ["Preload", "Oxygen", "Glucose", "Sodium"], "correct": 0, "rational": "Nitrates pool blood in the veins, significantly reducing the amount of blood returning to the heart (preload)." },
-            { "question": "A patient should sit before taking nitrate to prevent:", "options": ["Hypertension", "Hypotension", "Infection", "Tachycardia"], "correct": 1, "rational": "Sitting prevents falls related to orthostatic hypotension caused by the sudden vasodilation of nitrates." },
-            { "question": "Which drug decreases heart rate and oxygen demand?", "options": ["Beta blockers", "Antibiotics", "Insulin", "Diuretics"], "correct": 0, "rational": "Beta blockers slow the heart rate and decrease contractility, lowering oxygen demand." },
-            { "question": "Stopping beta blockers suddenly may cause:", "options": ["Hypotension", "Rebound angina", "Hypoglycemia", "Infection"], "correct": 1, "rational": "Abrupt cessation of beta blockers can lead to rebound hypertension, tachycardia, and severe angina." },
-            { "question": "Which drug is useful in vasospastic angina?", "options": ["Antibiotics", "Calcium channel blockers", "Insulin", "Diuretics"], "correct": 1, "rational": "Calcium channel blockers relax smooth muscle, preventing the coronary spasms seen in variant angina." },
-            { "question": "Which factor increases oxygen demand?", "options": ["Low HR", "High HR", "Rest", "Sleep"], "correct": 1, "rational": "A high heart rate requires the heart muscle to work harder, increasing its need for oxygen." },
-            { "question": "Which condition reduces oxygen supply?", "options": ["Vasodilation", "Atherosclerosis", "Exercise", "Sleep"], "correct": 1, "rational": "Atherosclerosis involves plaque buildup that narrows arteries, physically restricting blood flow and oxygen supply." },
-            { "question": "Which patient is at highest risk?", "options": ["Young athlete", "Obese smoker hypertensive", "Child", "Healthy adult"], "correct": 1, "rational": "Multiple risk factors (obesity, smoking, hypertension) exponentially increase cardiovascular risk." },
-            { "question": "A diabetic patient may have:", "options": ["Severe pain", "No pain", "Fever", "Rash"], "correct": 1, "rational": "Diabetics often have neuropathy, which can result in 'silent ischemia' (heart attacks without classic chest pain)." },
-            { "question": "Which sign indicates emergency?", "options": ["Pain relieved by rest", "Pain at rest", "Mild pain", "Short pain"], "correct": 1, "rational": "Pain occurring at rest suggests unstable angina or myocardial infarction." },
-            { "question": "Which sign suggests MI instead of angina?", "options": ["Pain relieved", "Pain not relieved", "Short pain", "Mild pain"], "correct": 1, "rational": "Pain that is severe, prolonged, and not relieved by rest or nitroglycerin strongly points to an MI." },
-            { "question": "Which intervention opens blocked artery?", "options": ["ECG", "PCI", "Antibiotics", "Insulin"], "correct": 1, "rational": "Percutaneous Coronary Intervention (PCI/stenting) physically reopens blocked coronary arteries." },
-            { "question": "CABG is indicated for:", "options": ["Mild angina", "Severe blockage", "Infection", "Hypotension"], "correct": 1, "rational": "Coronary Artery Bypass Grafting (CABG) is a surgical option for severe or multi-vessel blockages." },
-            { "question": "Which lifestyle modification is essential?", "options": ["Smoking", "Stop smoking", "Increase fat", "No exercise"], "correct": 1, "rational": "Smoking cessation is the most critical lifestyle change for cardiovascular disease." },
-            { "question": "Which diet is recommended?", "options": ["High fat", "Low fat", "High salt", "No protein"], "correct": 1, "rational": "A low fat, heart-healthy diet is universally recommended for cardiac patients." },
-            { "question": "Which parameter should nurse monitor?", "options": ["BP and HR", "Hair", "Skin", "Vision"], "correct": 0, "rational": "Blood pressure and heart rate directly reflect cardiovascular function and response to cardiac medications." },
-            { "question": "Which symptom is classic?", "options": ["Chest pain", "Fever", "Rash", "Vomiting"], "correct": 0, "rational": "Chest pain (angina) is the hallmark symptom of ischemic heart disease." },
-            { "question": "Pain radiates to:", "options": ["Leg", "Left arm", "Eye", "Ear"], "correct": 1, "rational": "Cardiac chest pain characteristically radiates to the left arm, jaw, or shoulder." },
-            { "question": "Which drug increases oxygen supply?", "options": ["Nitrates", "Insulin", "Antibiotics", "Diuretics"], "correct": 0, "rational": "Nitrates increase oxygen supply by dilating coronary arteries and improving collateral blood flow." },
-            { "question": "Which factor triggers stable angina?", "options": ["Rest", "Exercise", "Sleep", "Food"], "correct": 1, "rational": "Exercise or physical exertion reliably triggers stable angina by increasing oxygen demand." },
-            { "question": "Which angina occurs unpredictably?", "options": ["Stable", "Unstable", "Variant", "Mild"], "correct": 1, "rational": "Unstable angina is unpredictable and can occur even at rest, unlike stable angina." },
-            { "question": "Which angina responds well to rest?", "options": ["Stable", "Unstable", "Variant", "Severe"], "correct": 0, "rational": "Stable angina usually subsides completely within a few minutes of resting." },
-            { "question": "Main goal of angina management:", "options": ["Increase HR", "Balance oxygen supply and demand", "Increase BP", "Increase fluid"], "correct": 1, "rational": "All angina therapies aim to restore the balance between the heart's oxygen needs and the blood supply it receives." }
-        ];
+    <div id="fallback-upload" class="file-upload hidden">
+        <p>Could not auto-load. Please select your qbank.json manually:</p>
+        <input type="file" id="json-upload" accept=".json">
+    </div>
+</div>
 
-        // Simulate server clock updating without external requests
-        function updateSimulatedClock() {
-            document.getElementById('last-time').textContent = new Date().toLocaleTimeString();
-        }
-        setInterval(updateSimulatedClock, 1000);
-        updateSimulatedClock();
+<div class="container hidden" id="quiz-screen">
+    <div class="header-stats">
+        <span id="q-counter">Question: 1/10</span>
+        <span id="timer-text">Time: ∞</span>
+    </div>
+    <div class="timer-bar-container hidden" id="timer-container">
+        <div class="timer-bar" id="timer-bar"></div>
+    </div>
+    <h3 id="question-text" style="text-align: left; line-height: 1.5;">Loading question...</h3>
+    <div id="options-container"></div>
+    <button id="next-btn" class="hidden" onclick="nextQuestion()">Next Question</button>
+</div>
 
-        // --- 2. MCQ Engine Logic ---
-        let questions = [];
-        let currentIdx = 0;
-        let userAnswers = {};
+<div class="container hidden" id="result-screen">
+    <h2>Session Complete!</h2>
+    <h1 id="score-text">0 / 0</h1>
+    <p id="result-message"></p>
+    <button onclick="location.reload()">Restart Simulator</button>
+</div>
 
-        // Fisher-Yates Shuffle
-        function shuffleArray(array) {
-            // Safety check: ensure array is iterable
-            if (!Array.isArray(array)) return [];
-            
-            let shuffled = [...array];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+<script>
+    // Global State
+    let qbank = [];
+    let currentQuestions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let mode = 'normal'; // normal, pomodoro, stress
+    let mainTimerInterval;
+    let stressTimerInterval;
+    let timeLeft = 0;
+
+    // DOM Elements
+    const setupScreen = document.getElementById('setup-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const loadStatus = document.getElementById('load-status');
+    const modeSelection = document.getElementById('mode-selection');
+    const fallbackUpload = document.getElementById('fallback-upload');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const nextBtn = document.getElementById('next-btn');
+    const qCounter = document.getElementById('q-counter');
+    const timerText = document.getElementById('timer-text');
+    const timerContainer = document.getElementById('timer-container');
+    const timerBar = document.getElementById('timer-bar');
+
+    // 1. Load Data
+    window.onload = () => {
+        fetch('qbank.json')
+            .then(response => {
+                if (!response.ok) throw new Error("Network response was not ok");
+                return response.json();
+            })
+            .then(data => {
+                qbank = data;
+                loadStatus.innerText = `Successfully loaded ${qbank.length} questions.`;
+                modeSelection.classList.remove('hidden');
+            })
+            .catch(error => {
+                loadStatus.innerText = "Auto-load failed. Running without a local server?";
+                fallbackUpload.classList.remove('hidden');
+            });
+    };
+
+    document.getElementById('json-upload').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                qbank = JSON.parse(e.target.result);
+                fallbackUpload.classList.add('hidden');
+                loadStatus.innerText = `Successfully loaded ${qbank.length} questions.`;
+                modeSelection.classList.remove('hidden');
+            } catch (err) {
+                alert("Invalid JSON format.");
             }
-            return shuffled;
-        }
-
-        // Setup Test UI
-        function initializeTestEngine(dataArray) {
-            questions = shuffleArray(dataArray); 
-            currentIdx = 0;
-            userAnswers = {};
-            
-            if (questions.length === 0) {
-                alert("The test could not be started because no valid questions were found.");
-                return;
-            }
-
-            document.getElementById('totalQNum').textContent = questions.length;
-            document.getElementById('uploadContainer').classList.add('hidden');
-            document.getElementById('testContainer').classList.remove('hidden');
-            document.getElementById('testContainer').classList.add('flex');
-            
-            renderQuestion();
-        }
-
-        // Start with default embedded questions
-        window.startWithDefaultBank = () => {
-            initializeTestEngine(embeddedQuestions);
         };
+        reader.readAsText(file);
+    });
 
-        // Handle File Upload for custom banks
-        document.getElementById('fileInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    let rawData = JSON.parse(event.target.result);
-                    
-                    // Format Correction: Verify and extract array if necessary
-                    if (!Array.isArray(rawData)) {
-                        // Check if it's a single question object
-                        if (rawData.question && rawData.options) {
-                            rawData = [rawData];
-                        } else {
-                            // Look for an array property within the object (e.g. { "questions": [...] })
-                            const arrayKey = Object.keys(rawData).find(key => Array.isArray(rawData[key]));
-                            if (arrayKey) {
-                                rawData = rawData[arrayKey];
-                            } else {
-                                throw new Error("Could not find an array of questions in the uploaded JSON file.");
-                            }
-                        }
-                    }
+    // 2. Utility: Shuffle Array (Fisher-Yates)
+    function shuffleArray(array) {
+        let curId = array.length;
+        while (0 !== curId) {
+            let randId = Math.floor(Math.random() * curId);
+            curId -= 1;
+            let tmp = array[curId];
+            array[curId] = array[randId];
+            array[randId] = tmp;
+        }
+        return array;
+    }
 
-                    initializeTestEngine(rawData);
-                } catch (err) {
-                    alert("Error processing JSON file: " + err.message);
-                    console.error(err);
-                }
-            };
-            reader.readAsText(file);
+    // 3. Game Flow
+    function startGame(selectedMode) {
+        mode = selectedMode;
+        currentQuestions = shuffleArray([...qbank]); 
+        currentQuestionIndex = 0;
+        score = 0;
+
+        setupScreen.classList.add('hidden');
+        quizScreen.classList.remove('hidden');
+
+        if (mode === 'pomodoro') {
+            timeLeft = 25 * 60; // 25 minutes
+            startMainTimer();
+        }
+
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        if (currentQuestionIndex >= currentQuestions.length) {
+            endGame();
+            return;
+        }
+
+        nextBtn.classList.add('hidden');
+        optionsContainer.innerHTML = '';
+        const q = currentQuestions[currentQuestionIndex];
+        
+        qCounter.innerText = `Question: ${currentQuestionIndex + 1} / ${currentQuestions.length}`;
+        questionText.innerText = q.question;
+
+        // Shuffle Options
+        let options = shuffleArray([...q.options]);
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(btn, opt, q.answer);
+            optionsContainer.appendChild(btn);
         });
 
-        // Render Current Question
-        function renderQuestion() {
-            if (questions.length === 0) return;
-            
-            const q = questions[currentIdx];
-            const qArea = document.getElementById('questionArea');
-            const rationalArea = document.getElementById('rationalArea');
-            
-            // Update UI trackers
-            document.getElementById('currentQNum').textContent = currentIdx + 1;
-            rationalArea.classList.add('hidden');
-            document.getElementById('prevBtn').disabled = currentIdx === 0;
-            
-            // Change Next button to "Finish" on the last question
-            const nextBtn = document.getElementById('nextBtn');
-            if (currentIdx === questions.length - 1) {
-                nextBtn.innerHTML = 'Finish Test &rarr;';
-                nextBtn.classList.replace('bg-gray-900', 'bg-blue-600');
-            } else {
-                nextBtn.innerHTML = 'Next &rarr;';
-                nextBtn.classList.replace('bg-blue-600', 'bg-gray-900');
-            }
+        if (mode === 'stress') {
+            startStressTimer();
+        }
+    }
 
-            // Build Options HTML
-            let optionsHtml = '';
-            q.options.forEach((opt, i) => {
-                let btnClass = 'bg-white hover:bg-gray-50 border-gray-200 text-gray-700';
-                let isDisabled = '';
-                let iconHtml = '';
+    function checkAnswer(selectedBtn, selectedText, correctText) {
+        // Disable all buttons
+        const allBtns = optionsContainer.querySelectorAll('.option-btn');
+        allBtns.forEach(btn => btn.disabled = true);
+        
+        clearInterval(stressTimerInterval);
 
-                // Instant Feedback UI
-                if (userAnswers[currentIdx] !== undefined) {
-                    isDisabled = 'disabled';
-                    
-                    if (i === q.correct) {
-                        btnClass = 'bg-green-50 border-green-500 text-green-900 font-medium ring-1 ring-green-500';
-                        iconHtml = `<svg class="w-5 h-5 text-green-600 float-right" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
-                    } else if (userAnswers[currentIdx] === i) {
-                        btnClass = 'bg-red-50 border-red-500 text-red-900 font-medium';
-                        iconHtml = `<svg class="w-5 h-5 text-red-500 float-right" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
-                    } else {
-                        btnClass = 'bg-gray-50 border-gray-200 text-gray-400 opacity-60';
-                    }
-                }
-
-                optionsHtml += `
-                    <button ${isDisabled} onclick="selectAnswer(${i})" class="w-full text-left p-4 mb-3 rounded-xl border-2 transition duration-200 ease-in-out ${btnClass}">
-                        <span class="inline-block w-6 font-bold opacity-70">${String.fromCharCode(65 + i)}.</span> 
-                        ${opt}
-                        ${iconHtml}
-                    </button>
-                `;
+        if (selectedText === correctText) {
+            selectedBtn.classList.add('correct');
+            score++;
+        } else {
+            selectedBtn.classList.add('wrong');
+            // Highlight correct one
+            allBtns.forEach(btn => {
+                if (btn.innerText === correctText) btn.classList.add('correct');
             });
-
-            // Inject into DOM
-            qArea.innerHTML = `
-                <p class="text-xl text-gray-900 font-semibold mb-6 leading-relaxed">${q.question}</p>
-                <div class="space-y-1">
-                    ${optionsHtml}
-                </div>
-            `;
-            
-            if (userAnswers[currentIdx] !== undefined) {
-                showRational();
-            }
         }
+        nextBtn.classList.remove('hidden');
+    }
 
-        // Handle User Selection
-        window.selectAnswer = (selectedIndex) => {
-            userAnswers[currentIdx] = selectedIndex;
-            renderQuestion(); 
-            
-            setTimeout(() => {
-                document.getElementById('rationalArea').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }, 100);
-        };
+    function nextQuestion() {
+        currentQuestionIndex++;
+        renderQuestion();
+    }
 
-        // Display Rationale
-        function showRational() {
-            const q = questions[currentIdx];
-            const rationalArea = document.getElementById('rationalArea');
-            
-            let explanationText = q.rational ? q.rational : "No explanation provided in the question bank for this item.";
-            let isCorrect = userAnswers[currentIdx] === q.correct;
-            
-            let statusBadge = isCorrect 
-                ? `<span class="inline-block px-2 py-1 bg-green-200 text-green-800 rounded text-xs font-bold uppercase tracking-wide mr-2">Correct</span>`
-                : `<span class="inline-block px-2 py-1 bg-red-200 text-red-800 rounded text-xs font-bold uppercase tracking-wide mr-2">Incorrect</span>`;
+    // 4. Timers
+    function startMainTimer() {
+        timerText.classList.remove('hidden');
+        mainTimerInterval = setInterval(() => {
+            timeLeft--;
+            let m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            let s = (timeLeft % 60).toString().padStart(2, '0');
+            timerText.innerText = `Pomodoro: ${m}:${s}`;
+            if (timeLeft <= 0) {
+                clearInterval(mainTimerInterval);
+                endGame();
+            }
+        }, 1000);
+    }
 
-            rationalArea.innerHTML = `<div class="mb-2">${statusBadge} <span class="font-bold">Explanation:</span></div> <p class="text-gray-700 leading-relaxed">${explanationText}</p>`;
-            rationalArea.classList.remove('hidden');
+    function startStressTimer() {
+        clearInterval(stressTimerInterval);
+        timerContainer.classList.remove('hidden');
+        let stressTime = 15; // 15 seconds per question
+        timerBar.style.width = '100%';
+        timerBar.classList.remove('timer-warning');
+
+        stressTimerInterval = setInterval(() => {
+            stressTime--;
+            let percentage = (stressTime / 15) * 100;
+            timerBar.style.width = `${percentage}%`;
+            
+            if (stressTime <= 5) timerBar.classList.add('timer-warning');
+
+            if (stressTime <= 0) {
+                clearInterval(stressTimerInterval);
+                const correctText = currentQuestions[currentQuestionIndex].answer;
+                const allBtns = optionsContainer.querySelectorAll('.option-btn');
+                allBtns.forEach(btn => {
+                    btn.disabled = true;
+                    if (btn.innerText === correctText) btn.classList.add('correct');
+                });
+                nextBtn.classList.remove('hidden');
+            }
+        }, 1000);
+    }
+
+    // 5. Completion & Celebration
+    function endGame() {
+        clearInterval(mainTimerInterval);
+        clearInterval(stressTimerInterval);
+        quizScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+
+        const percentage = (score / currentQuestions.length) * 100;
+        document.getElementById('score-text').innerText = `${score} / ${currentQuestions.length}`;
+        
+        const msg = document.getElementById('result-message');
+        if (percentage >= 80) {
+            msg.innerText = "Excellent performance! Ready for the clinical floor.";
+            fireConfetti();
+        } else if (percentage >= 60) {
+            msg.innerText = "Good job, but keep reviewing those critical values.";
+        } else {
+            msg.innerText = "Time to hit the books again. You'll get it next time!";
         }
+    }
 
-        // Navigation Controls
-        window.nextQ = () => {
-            if (currentIdx < questions.length - 1) {
-                currentIdx++;
-                renderQuestion();
-            } else {
-                finishTest();
-            }
-        };
+    function fireConfetti() {
+        const canvas = document.getElementById('confetti-canvas');
+        canvas.classList.remove('hidden');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
-        window.prevQ = () => {
-            if (currentIdx > 0) {
-                currentIdx--;
-                renderQuestion();
-            }
-        };
-
-        // Calculate and Show Final Results
-        function finishTest() {
-            let score = 0;
-            let answeredCount = Object.keys(userAnswers).length;
-            
-            if (answeredCount < questions.length) {
-                if (!confirm(`You have only answered ${answeredCount} out of ${questions.length} questions. Are you sure you want to finish?`)) return;
-            }
-
-            questions.forEach((q, i) => {
-                if (userAnswers[i] === q.correct) score++;
+        let particles = [];
+        for (let i = 0; i < 150; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                w: Math.random() * 10 + 5,
+                h: Math.random() * 10 + 5,
+                color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                speedY: Math.random() * 3 + 2,
+                speedX: Math.random() * 2 - 1,
+                rot: Math.random() * 360,
+                rotSpeed: Math.random() * 10 - 5
             });
-
-            document.getElementById('testContainer').classList.add('hidden');
-            document.getElementById('testContainer').classList.remove('flex');
-            document.getElementById('resultsContainer').classList.remove('hidden');
-            
-            let percentage = Math.round((score / questions.length) * 100);
-            document.getElementById('scoreText').innerHTML = `${score} <span class="text-2xl text-gray-400 font-normal">/ ${questions.length}</span> <div class="text-lg mt-1 text-gray-500 font-medium">(${percentage}%)</div>`;
         }
-    </script>
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.y += p.speedY;
+                p.x += p.speedX;
+                p.rot += p.rotSpeed;
+                
+                ctx.save();
+                ctx.translate(p.x + p.w/2, p.y + p.h/2);
+                ctx.rotate(p.rot * Math.PI / 180);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                ctx.restore();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+    }
+</script>
 </body>
 </html>
