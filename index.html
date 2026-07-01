@@ -4,295 +4,323 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gamified MCQ Engine</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --bg-color: #121212;
-            --container-bg: #1e1e1e;
-            --primary: #bb86fc;
-            --correct: #03dac6;
-            --wrong: #cf6679;
-            --text: #ffffff;
+            --primary: #4F46E5;
+            --success: #10B981;
+            --danger: #EF4444;
+            --bg: #111827;
+            --panel: #1F2937;
+            --text: #F9FAFB;
         }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
+            background-color: var(--bg);
             color: var(--text);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            overflow: hidden;
         }
-
-        #app-container {
-            background-color: var(--container-bg);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
-            width: 100%;
+        .game-container {
+            background-color: var(--panel);
+            width: 90%;
             max-width: 600px;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             text-align: center;
-            position: relative;
         }
-
-        /* Pomodoro & Gaming Header */
-        header {
+        /* Top HUD (Heads Up Display) */
+        .hud {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 1px solid #333;
+            border-bottom: 2px solid #374151;
         }
-
-        .stat-box {
-            background: #333;
-            padding: 8px 15px;
-            border-radius: 20px;
+        .hud-stat {
+            font-size: 1.1rem;
             font-weight: bold;
         }
-
-        #timer { color: #ffb74d; }
-        #score-display { color: var(--primary); }
-        #streak-display { color: #ffeb3b; }
-
-        /* Quiz Area */
-        #question {
-            font-size: 1.3em;
-            margin-bottom: 20px;
-            min-height: 60px;
+        .pomodoro { color: #F59E0B; }
+        .score { color: var(--success); }
+        .streak { color: #3B82F6; }
+        
+        /* Question Area */
+        #question-text {
+            font-size: 1.4rem;
+            margin-bottom: 24px;
+            font-weight: 600;
         }
-
         .options-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 10px;
+            gap: 12px;
         }
-
-        button.option-btn {
-            background-color: #333;
+        .option-btn {
+            background-color: #374151;
             color: white;
             border: 2px solid transparent;
-            padding: 15px;
+            padding: 16px;
+            font-size: 1.1rem;
             border-radius: 8px;
-            font-size: 1em;
             cursor: pointer;
             transition: all 0.2s;
         }
-
-        button.option-btn:hover {
-            background-color: #444;
-            transform: scale(1.02);
+        .option-btn:hover:not(:disabled) {
+            background-color: #4B5563;
+            transform: translateY(-2px);
         }
-
-        button.option-btn:disabled {
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Feedback States */
-        button.option-btn.correct { background-color: var(--correct); color: #000; border-color: var(--correct); }
-        button.option-btn.wrong { background-color: var(--wrong); color: #000; border-color: var(--wrong); }
-
-        /* Celebration Screen */
-        #celebration-screen {
-            display: none;
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(30, 30, 30, 0.95);
-            border-radius: 12px;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-
-        #celebration-screen h1 { font-size: 3em; margin-bottom: 10px; }
+        .option-btn:disabled { cursor: not-allowed; }
+        .correct { background-color: var(--success) !important; color: white; }
+        .wrong { background-color: var(--danger) !important; color: white; }
         
-        .confetti {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: #f00;
-            animation: fall 3s linear infinite;
+        #next-btn, #restart-btn {
+            margin-top: 24px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: none;
+            width: 100%;
+            font-weight: bold;
         }
-
-        @keyframes fall {
-            to { transform: translateY(100vh) rotate(360deg); }
+        #next-btn:hover, #restart-btn:hover { background-color: #4338CA; }
+        
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            background-color: #374151;
+            border-radius: 8px;
+            margin-top: 20px;
+            height: 10px;
+            overflow: hidden;
+        }
+        #progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s;
         }
     </style>
 </head>
 <body>
 
-    <div id="app-container">
-        <header>
-            <div class="stat-box" id="timer">🍅 25:00</div>
-            <div class="stat-box" id="score-display">Score: 0</div>
-            <div class="stat-box" id="streak-display">🔥 x0</div>
-        </header>
-
-        <main id="quiz-area">
-            <div id="question">Loading questions...</div>
-            <div class="options-grid" id="options-container"></div>
-        </main>
-
-        <div id="celebration-screen">
-            <h1>🎉 You Did It! 🎉</h1>
-            <p>Pomodoro Complete or Questions Finished!</p>
-            <h2 id="final-score">Final Score: 0</h2>
-            <button class="option-btn" onclick="location.reload()" style="background: var(--primary); margin-top: 20px;">Play Again</button>
-        </div>
+<div class="game-container">
+    <div class="hud" id="hud" style="display: none;">
+        <div class="hud-stat pomodoro">🍅 <span id="time">25:00</span></div>
+        <div class="hud-stat score">⭐ Score: <span id="score">0</span></div>
+        <div class="hud-stat streak">🔥 Streak: <span id="streak">0</span></div>
     </div>
 
-    <script>
-        /* --- GAME STATE --- */
-        let questions = [];
-        let currentQuestionIndex = 0;
-        let score = 0;
-        let streak = 0;
-        let pomodoroTime = 25 * 60; // 25 minutes in seconds
-        let timerInterval;
+    <div id="game-area">
+        <h2 id="question-text">Loading qbank.csv...</h2>
+        <div class="options-grid" id="options-grid"></div>
+        <button id="next-btn" onclick="nextQuestion()">Next Question ➔</button>
+        <button id="restart-btn" onclick="location.reload()">Play Again</button>
+        
+        <div class="progress-container" id="progress-container" style="display: none;">
+            <div id="progress-bar"></div>
+        </div>
+    </div>
+</div>
 
-        /* --- 1. DATA LOADING ROLE --- */
-        // Automatically fetches qbank.json when the page opens.
-        async function loadQBank() {
-            try {
-                const response = await fetch('qbank.json');
-                if (!response.ok) throw new Error('File not found');
-                const data = await response.json();
-                questions = data;
-                startGame();
-            } catch (error) {
-                console.warn("Could not load qbank.json. Using fallback mock data.");
-                // Fallback data so the engine works even without a local server
-                questions = [
-                    { question: "What does HTML stand for?", options: ["Hyper Text Markup Language", "High Tech Modern Language", "Hyperlink and Text Markup Language", "Home Tool Markup Language"], answer: "Hyper Text Markup Language" },
-                    { question: "Which CSS property controls the text size?", options: ["font-style", "text-size", "font-size", "text-style"], answer: "font-size" },
-                    { question: "Inside which HTML element do we put the JavaScript?", options: ["<javascript>", "<scripting>", "<js>", "<script>"], answer: "<script>" }
-                ];
-                startGame();
-            }
-        }
+<script>
+    // State Variables
+    let questions = [];
+    let currentQuestionIndex = 0;
+    
+    // Gaming Role Variables
+    let score = 0;
+    let streak = 0;
+    let multiplier = 1;
 
-        /* --- 2. SHUFFLING ROLE --- */
-        // Fisher-Yates Shuffle Algorithm
-        function shuffleArray(array) {
-            let shuffled = [...array];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
-        }
+    // Pomodoro Role Variables
+    let timeLeft = 25 * 60; // 25 minutes
+    let timerInterval;
 
-        /* --- 3. POMODORO TIMER ROLE --- */
-        function startPomodoro() {
-            const timerElement = document.getElementById('timer');
-            timerInterval = setInterval(() => {
-                if (pomodoroTime <= 0) {
-                    clearInterval(timerInterval);
-                    triggerCelebration("🍅 Focus Session Complete!");
-                    return;
-                }
-                pomodoroTime--;
-                let minutes = Math.floor(pomodoroTime / 60);
-                let seconds = pomodoroTime % 60;
-                timerElement.innerText = `🍅 ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
-
-        /* --- 4. GAMING & MCQ UI ROLE --- */
-        function startGame() {
-            questions = shuffleArray(questions); // Shuffle questions
-            score = 0;
-            streak = 0;
-            currentQuestionIndex = 0;
-            updateStats();
-            startPomodoro();
-            renderQuestion();
-        }
-
-        function renderQuestion() {
-            if (currentQuestionIndex >= questions.length) {
-                triggerCelebration("🏆 Quiz Completed!");
-                return;
-            }
-
-            const currentQ = questions[currentQuestionIndex];
-            document.getElementById('question').innerText = currentQ.question;
+    // --- 1. AUTO LOAD & PARSE ROLE ---
+    window.onload = async function() {
+        try {
+            const response = await fetch('qbank.csv');
+            if (!response.ok) throw new Error('File not found');
+            const csvText = await response.text();
+            parseCSV(csvText);
             
-            const optionsContainer = document.getElementById('options-container');
-            optionsContainer.innerHTML = ''; // Clear previous
+            if (questions.length > 0) {
+                startGame();
+            } else {
+                showError("qbank.csv is empty or badly formatted.");
+            }
+        } catch (error) {
+            showError("Could not load qbank.csv. Are you running a local web server?");
+        }
+    };
 
-            // Shuffle options for the current question
-            const shuffledOptions = shuffleArray(currentQ.options);
+    function parseCSV(csvText) {
+        const lines = csvText.split('\n').filter(line => line.trim() !== '');
+        lines.forEach(line => {
+            // Simple split by comma. (Assumes no commas inside the questions/answers)
+            const parts = line.split(',');
+            if (parts.length >= 6) {
+                questions.push({
+                    question: parts[0].trim(),
+                    options: [
+                        { text: parts[1].trim(), isCorrect: parts[5].trim() === '1' },
+                        { text: parts[2].trim(), isCorrect: parts[5].trim() === '2' },
+                        { text: parts[3].trim(), isCorrect: parts[5].trim() === '3' },
+                        { text: parts[4].trim(), isCorrect: parts[5].trim() === '4' }
+                    ]
+                });
+            }
+        });
+    }
 
-            shuffledOptions.forEach(option => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerText = option;
-                btn.onclick = () => handleAnswer(btn, option, currentQ.answer);
-                optionsContainer.appendChild(btn);
+    function showError(msg) {
+        document.getElementById('question-text').innerText = msg;
+        document.getElementById('question-text').style.color = "var(--danger)";
+    }
+
+    // --- 2. SHUFFLE ROLE ---
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    // --- 3. POMODORO ROLE ---
+    function startPomodoro() {
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            document.getElementById('time').innerText = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                endGame("Pomodoro session complete!");
+            }
+        }, 1000);
+    }
+
+    // --- CORE GAME LOOP & GAMING ROLE ---
+    function startGame() {
+        shuffleArray(questions); // Shuffle the question bank
+        document.getElementById('hud').style.display = 'flex';
+        document.getElementById('progress-container').style.display = 'block';
+        startPomodoro();
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        const currentQ = questions[currentQuestionIndex];
+        document.getElementById('question-text').innerText = currentQ.question;
+        const optionsGrid = document.getElementById('options-grid');
+        optionsGrid.innerHTML = '';
+        document.getElementById('next-btn').style.display = 'none';
+
+        // Shuffle options for the current question
+        let shuffledOptions = [...currentQ.options];
+        shuffleArray(shuffledOptions);
+
+        shuffledOptions.forEach((option) => {
+            const button = document.createElement('button');
+            button.innerText = option.text;
+            button.classList.add('option-btn');
+            button.onclick = () => selectAnswer(button, option.isCorrect, shuffledOptions);
+            optionsGrid.appendChild(button);
+        });
+
+        updateProgress();
+    }
+
+    function selectAnswer(selectedBtn, isCorrect, allOptions) {
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach(btn => btn.disabled = true); // Lock answers
+
+        if (isCorrect) {
+            selectedBtn.classList.add('correct');
+            streak++;
+            multiplier = streak >= 3 ? 2 : 1; // Double points for streak >= 3
+            score += (10 * multiplier);
+            triggerMiniCelebration(); // Mini confetti for correct answer
+        } else {
+            selectedBtn.classList.add('wrong');
+            streak = 0;
+            // Highlight the actual correct answer
+            buttons.forEach(btn => {
+                const optionData = allOptions.find(o => o.text === btn.innerText);
+                if (optionData && optionData.isCorrect) {
+                    btn.classList.add('correct');
+                }
             });
         }
 
-        function handleAnswer(btn, selectedOption, correctOption) {
-            // Disable all buttons
-            const allBtns = document.querySelectorAll('.option-btn');
-            allBtns.forEach(b => b.disabled = true);
+        updateHUD();
+        document.getElementById('next-btn').style.display = 'block';
+    }
 
-            if (selectedOption === correctOption) {
-                // Correct Answer Logic
-                btn.classList.add('correct');
-                streak++;
-                score += (10 * streak); // Gamification: Score multiplier based on streak
-            } else {
-                // Wrong Answer Logic
-                btn.classList.add('wrong');
-                streak = 0; // Break streak
-                // Highlight the correct one
-                allBtns.forEach(b => {
-                    if (b.innerText === correctOption) b.classList.add('correct');
-                });
-            }
+    function updateHUD() {
+        document.getElementById('score').innerText = score;
+        let streakText = streak;
+        if (streak >= 3) streakText += " (x2 Pts!)";
+        document.getElementById('streak').innerText = streakText;
+    }
 
-            updateStats();
-            
-            // Wait 1.5 seconds, then load next question
-            setTimeout(() => {
-                currentQuestionIndex++;
-                renderQuestion();
-            }, 1500);
+    function updateProgress() {
+        const progress = (currentQuestionIndex / questions.length) * 100;
+        document.getElementById('progress-bar').style.width = `${progress}%`;
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+        } else {
+            endGame("Quiz Completed!");
         }
+    }
 
-        function updateStats() {
-            document.getElementById('score-display').innerText = `Score: ${score}`;
-            document.getElementById('streak-display').innerText = `🔥 x${streak}`;
-        }
+    // --- 4. CELEBRATION ROLE ---
+    function triggerMiniCelebration() {
+        confetti({
+            particleCount: 30,
+            spread: 50,
+            origin: { y: 0.8 },
+            colors: ['#10B981', '#3B82F6']
+        });
+    }
 
-        /* --- 5. CELEBRATION ROLE --- */
-        function triggerCelebration(message) {
-            clearInterval(timerInterval); // Stop timer
-            const celebScreen = document.getElementById('celebration-screen');
-            celebScreen.style.display = 'flex';
-            celebScreen.querySelector('p').innerText = message;
-            document.getElementById('final-score').innerText = `Final Score: ${score}`;
-            
-            // Simple Confetti Generator
-            for(let i = 0; i < 50; i++) {
-                let confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confetti.style.left = Math.random() * 100 + 'vw';
-                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
-                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
-                document.body.appendChild(confetti);
-            }
-        }
+    function endGame(message) {
+        clearInterval(timerInterval);
+        document.getElementById('question-text').innerText = message;
+        document.getElementById('options-grid').innerHTML = 
+            `<h2>Final Score: ${score}</h2><p>Longest Streak bonus applied!</p>`;
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('restart-btn').style.display = 'block';
+        document.getElementById('progress-bar').style.width = `100%`;
 
-        // Initialize App on Page Load
-        window.onload = loadQBank;
-    </script>
+        // Big Celebration Confetti
+        var duration = 3 * 1000;
+        var animationEnd = Date.now() + duration;
+        var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+        var interval = setInterval(function() {
+            var timeLeft = animationEnd - Date.now();
+            if (timeLeft <= 0) { return clearInterval(interval); }
+            var particleCount = 50 * (timeLeft / duration);
+            confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } }));
+        }, 250);
+    }
+</script>
 </body>
 </html>
