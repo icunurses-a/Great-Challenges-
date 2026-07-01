@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive MCQ Quiz</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .quiz-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+        .option-btn:hover {
+            background-color: #dbe2e8;
+        }
+        .option-btn.correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .option-btn.wrong {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        #next-btn {
+            display: none;
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #next-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="quiz">
+        <h2 id="question">Loading questions...</h2>
+        <div id="options-container"></div>
+    </div>
+    <button id="next-btn" onclick="nextQuestion()">Next Question</button>
+</div>
+
+<script>
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    // Automatically load the JSON file
+    async function loadQuestions() {
+        try {
+            const response = await fetch('qbank.json');
+            if (!response.ok) throw new Error("Network response was not ok");
+            questions = await response.json();
+            showQuestion();
+        } catch (error) {
+            document.getElementById('question').innerText = "Error loading qbank.json. Ensure you are running a local server.";
+            console.error("Fetch error:", error);
+        }
+    }
+
+    function showQuestion() {
+        const questionElement = document.getElementById('question');
+        const optionsContainer = document.getElementById('options-container');
+        const nextButton = document.getElementById('next-btn');
+
+        // Reset state
+        optionsContainer.innerHTML = '';
+        nextButton.style.display = 'none';
+
+        const currentData = questions[currentQuestionIndex];
+        questionElement.innerText = currentData.question;
+
+        currentData.options.forEach((option, index) => {
+            const button = document.createElement('button');
+            button.innerText = option;
+            button.classList.add('option-btn');
+            button.onclick = () => selectAnswer(index, button);
+            optionsContainer.appendChild(button);
+        });
+    }
+
+    function selectAnswer(selectedIndex, selectedButton) {
+        const currentData = questions[currentQuestionIndex];
+        const buttons = document.querySelectorAll('.option-btn');
+        const nextButton = document.getElementById('next-btn');
+
+        // Disable all buttons after selection
+        buttons.forEach(btn => btn.disabled = true);
+
+        if (selectedIndex === currentData.answer) {
+            selectedButton.classList.add('correct');
+            score++;
+        } else {
+            selectedButton.classList.add('wrong');
+            // Highlight correct answer
+            buttons[currentData.answer].classList.add('correct');
+        }
+
+        nextButton.style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            showQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        const quizContainer = document.getElementById('quiz');
+        const nextButton = document.getElementById('next-btn');
+        quizContainer.innerHTML = `<h2>You scored ${score} out of ${questions.length}!</h2>`;
+        nextButton.innerText = "Restart Quiz";
+        nextButton.onclick = () => location.reload();
+    }
+
+    // Initialize
+    loadQuestions();
+</script>
+
+</body>
+</html>
