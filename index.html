@@ -3,396 +3,430 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gamified MCQ Simulator</title>
+    <title>Advanced MCQ Simulator</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --bg-color: #121212;
-            --container-bg: #1e1e1e;
-            --text-main: #ffffff;
-            --text-muted: #a0a0a0;
-            --accent: #bb86fc;
-            --correct: #03dac6;
-            --wrong: #cf6679;
-            --timer-bg: #333;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --border: #e2e8f0;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
+            min-height: 100vh;
         }
+
         .container {
-            background-color: var(--container-bg);
+            background-color: var(--card-bg);
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            width: 90%;
-            max-width: 600px;
-            text-align: center;
-            position: relative;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
         }
+
+        h1, h2 { text-align: center; color: var(--primary); }
+        
         .hidden { display: none !important; }
-        
-        /* Buttons */
-        button {
-            background-color: var(--accent);
-            color: #000;
-            border: none;
-            padding: 12px 20px;
-            margin: 10px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: opacity 0.2s;
+
+        /* Setup Screen */
+        .setup-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
         }
-        button:hover { opacity: 0.8; }
-        button:disabled { background-color: var(--text-muted); cursor: not-allowed; }
+
+        label { display: block; margin-bottom: 8px; font-weight: 600; }
         
-        .option-btn {
+        input[type="file"] {
             display: block;
             width: 100%;
-            background-color: #2c2c2c;
-            color: var(--text-main);
-            margin: 8px 0;
-            text-align: left;
-            border: 1px solid #444;
+            padding: 10px;
+            border: 1px dashed var(--primary);
+            border-radius: 6px;
+            cursor: pointer;
         }
-        .option-btn:hover { background-color: #3d3d3d; border-color: var(--accent); }
-        .option-btn.correct { background-color: var(--correct); color: #000; border-color: var(--correct); }
-        .option-btn.wrong { background-color: var(--wrong); color: #000; border-color: var(--wrong); }
 
-        /* File Upload Fallback */
-        .file-upload { margin-top: 20px; padding-top: 20px; border-top: 1px solid #444; }
-        input[type="file"] { color: var(--text-muted); }
+        select, .toggle-label {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 16px;
+        }
 
-        /* Timers */
-        .header-stats {
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        button:hover { background-color: var(--primary-hover); }
+        button:disabled { background-color: #94a3b8; cursor: not-allowed; }
+
+        /* Quiz Screen */
+        .header-info {
             display: flex;
             justify-content: space-between;
-            font-size: 14px;
-            color: var(--text-muted);
+            font-weight: bold;
             margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
         }
-        .timer-bar-container {
-            width: 100%;
-            height: 8px;
-            background-color: var(--timer-bg);
-            border-radius: 4px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-        .timer-bar {
-            height: 100%;
-            background-color: var(--accent);
-            width: 100%;
-            transition: width 1s linear;
-        }
-        .timer-warning { background-color: var(--wrong); }
 
-        /* Confetti Canvas */
-        #confetti-canvas {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 100;
+        .timer { font-size: 1.2rem; color: var(--danger); }
+        
+        .question-text {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background-color: var(--bg);
+            color: var(--text);
+            border: 2px solid var(--border);
+            text-align: left;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background-color: #eff6ff;
+        }
+
+        .option-btn.correct {
+            background-color: #dcfce7;
+            border-color: var(--success);
+            color: #14532d;
+        }
+
+        .option-btn.wrong {
+            background-color: #fee2e2;
+            border-color: var(--danger);
+            color: #7f1d1d;
+        }
+
+        .rationale-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            border-radius: 4px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        #nextBtn { width: auto; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
 
-<canvas id="confetti-canvas" class="hidden"></canvas>
-
-<div class="container" id="setup-screen">
-    <h2>MCQ Training Simulator</h2>
-    <p id="load-status">Attempting to auto-load qbank.json...</p>
+<div class="container" id="setupScreen">
+    <h1>MCQ Simulator Setup</h1>
     
-    <div id="mode-selection" class="hidden">
-        <h3>Select Game Mode</h3>
-        <button onclick="startGame('normal')">Normal (Untimed)</button>
-        <button onclick="startGame('pomodoro')">Pomodoro (25 Min Session)</button>
-        <button onclick="startGame('stress')">Stress Mode (15s / Question)</button>
+    <div class="setup-group">
+        <label for="qbankUpload">1. Upload Question Bank (JSON)</label>
+        <input type="file" id="qbankUpload" accept=".json">
+        <small id="uploadStatus" style="color: var(--success); display: none; margin-top: 5px;">File loaded successfully!</small>
     </div>
 
-    <div id="fallback-upload" class="file-upload hidden">
-        <p>Could not auto-load. Please select your qbank.json manually:</p>
-        <input type="file" id="json-upload" accept=".json">
+    <div class="setup-group">
+        <label for="timingMode">2. Select Timing Mode</label>
+        <select id="timingMode">
+            <option value="none">No Timer (Relaxed Mode)</option>
+            <option value="pomodoro">Pomodoro (25 Minutes Total)</option>
+            <option value="stress">Stress Mode (15 Seconds per Question)</option>
+        </select>
+    </div>
+
+    <div class="setup-group">
+        <label>3. Gameplay Rules</label>
+        <div class="toggle-container">
+            <input type="checkbox" id="instantAnswer" checked>
+            <label for="instantAnswer" style="margin:0; font-weight: normal;">Instant Show Answer & Rationale</label>
+        </div>
+        <div class="toggle-container">
+            <input type="checkbox" id="shuffleQuestions" checked>
+            <label for="shuffleQuestions" style="margin:0; font-weight: normal;">Shuffle Questions</label>
+        </div>
+        <div class="toggle-container">
+            <input type="checkbox" id="shuffleOptions" checked>
+            <label for="shuffleOptions" style="margin:0; font-weight: normal;">Shuffle Options inside Questions</label>
+        </div>
+    </div>
+
+    <button id="startBtn" disabled>Start Examination</button>
+</div>
+
+<div class="container hidden" id="quizScreen">
+    <div class="header-info">
+        <div id="progressText">Question 1 of 10</div>
+        <div class="timer" id="timerDisplay"></div>
+        <div id="scoreText">Score: 0</div>
+    </div>
+
+    <div class="question-text" id="questionText">Loading question...</div>
+    
+    <div class="options-grid" id="optionsContainer"></div>
+
+    <div class="rationale-box hidden" id="rationaleContainer">
+        <strong>Rationale:</strong> <span id="rationaleText"></span>
+    </div>
+
+    <div class="controls">
+        <button id="nextBtn" class="hidden">Next Question</button>
     </div>
 </div>
 
-<div class="container hidden" id="quiz-screen">
-    <div class="header-stats">
-        <span id="q-counter">Question: 1/10</span>
-        <span id="timer-text">Time: ∞</span>
-    </div>
-    <div class="timer-bar-container hidden" id="timer-container">
-        <div class="timer-bar" id="timer-bar"></div>
-    </div>
-    <h3 id="question-text" style="text-align: left; line-height: 1.5;">Loading question...</h3>
-    <div id="options-container"></div>
-    <button id="next-btn" class="hidden" onclick="nextQuestion()">Next Question</button>
-</div>
-
-<div class="container hidden" id="result-screen">
-    <h2>Session Complete!</h2>
-    <h1 id="score-text">0 / 0</h1>
-    <p id="result-message"></p>
-    <button onclick="location.reload()">Restart Simulator</button>
+<div class="container hidden" id="resultScreen">
+    <h1>Examination Complete!</h1>
+    <h2 id="finalScore">Your Score: 0%</h2>
+    <p style="text-align: center;" id="resultMessage"></p>
+    <button onclick="location.reload()" style="margin-top: 20px;">Restart Simulator</button>
 </div>
 
 <script>
-    // Global State
+    // App State
     let qbank = [];
-    let currentQuestions = [];
     let currentQuestionIndex = 0;
     let score = 0;
-    let mode = 'normal'; // normal, pomodoro, stress
-    let mainTimerInterval;
-    let stressTimerInterval;
-    let timeLeft = 0;
+    let timerInterval;
+    let timeLeft;
+    let settings = {};
 
     // DOM Elements
-    const setupScreen = document.getElementById('setup-screen');
-    const quizScreen = document.getElementById('quiz-screen');
-    const resultScreen = document.getElementById('result-screen');
-    const loadStatus = document.getElementById('load-status');
-    const modeSelection = document.getElementById('mode-selection');
-    const fallbackUpload = document.getElementById('fallback-upload');
-    const questionText = document.getElementById('question-text');
-    const optionsContainer = document.getElementById('options-container');
-    const nextBtn = document.getElementById('next-btn');
-    const qCounter = document.getElementById('q-counter');
-    const timerText = document.getElementById('timer-text');
-    const timerContainer = document.getElementById('timer-container');
-    const timerBar = document.getElementById('timer-bar');
+    const setupScreen = document.getElementById('setupScreen');
+    const quizScreen = document.getElementById('quizScreen');
+    const resultScreen = document.getElementById('resultScreen');
+    const startBtn = document.getElementById('startBtn');
+    const qbankUpload = document.getElementById('qbankUpload');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const nextBtn = document.getElementById('nextBtn');
 
-    // 1. Load Data
-    window.onload = () => {
-        fetch('qbank.json')
-            .then(response => {
-                if (!response.ok) throw new Error("Network response was not ok");
-                return response.json();
-            })
-            .then(data => {
-                qbank = data;
-                loadStatus.innerText = `Successfully loaded ${qbank.length} questions.`;
-                modeSelection.classList.remove('hidden');
-            })
-            .catch(error => {
-                loadStatus.innerText = "Auto-load failed. Running without a local server?";
-                fallbackUpload.classList.remove('hidden');
-            });
-    };
-
-    document.getElementById('json-upload').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                qbank = JSON.parse(e.target.result);
-                fallbackUpload.classList.add('hidden');
-                loadStatus.innerText = `Successfully loaded ${qbank.length} questions.`;
-                modeSelection.classList.remove('hidden');
-            } catch (err) {
-                alert("Invalid JSON format.");
-            }
-        };
-        reader.readAsText(file);
-    });
-
-    // 2. Utility: Shuffle Array (Fisher-Yates)
+    // Utility: Shuffle Array (Fisher-Yates)
     function shuffleArray(array) {
-        let curId = array.length;
-        while (0 !== curId) {
-            let randId = Math.floor(Math.random() * curId);
-            curId -= 1;
-            let tmp = array[curId];
-            array[curId] = array[randId];
-            array[randId] = tmp;
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
         }
         return array;
     }
 
-    // 3. Game Flow
-    function startGame(selectedMode) {
-        mode = selectedMode;
-        currentQuestions = shuffleArray([...qbank]); 
-        currentQuestionIndex = 0;
-        score = 0;
+    // Handle File Upload
+    qbankUpload.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    qbank = JSON.parse(e.target.result);
+                    document.getElementById('uploadStatus').style.display = 'block';
+                    startBtn.disabled = false;
+                } catch (error) {
+                    alert("Invalid JSON file format.");
+                }
+            };
+            reader.readAsText(file);
+        }
+    });
 
+    // Start Quiz
+    startBtn.addEventListener('click', () => {
+        settings = {
+            mode: document.getElementById('timingMode').value,
+            instant: document.getElementById('instantAnswer').checked,
+            shuffleQ: document.getElementById('shuffleQuestions').checked,
+            shuffleO: document.getElementById('shuffleOptions').checked
+        };
+
+        if (settings.shuffleQ) shuffleArray(qbank);
+        
         setupScreen.classList.add('hidden');
         quizScreen.classList.remove('hidden');
 
-        if (mode === 'pomodoro') {
+        if (settings.mode === 'pomodoro') {
             timeLeft = 25 * 60; // 25 minutes
-            startMainTimer();
+            startTimer(true);
         }
 
-        renderQuestion();
-    }
+        loadQuestion();
+    });
 
-    function renderQuestion() {
-        if (currentQuestionIndex >= currentQuestions.length) {
-            endGame();
+    function loadQuestion() {
+        if (currentQuestionIndex >= qbank.length) {
+            endQuiz();
             return;
         }
 
-        nextBtn.classList.add('hidden');
+        // Reset UI
         optionsContainer.innerHTML = '';
-        const q = currentQuestions[currentQuestionIndex];
+        document.getElementById('rationaleContainer').classList.add('hidden');
+        nextBtn.classList.add('hidden');
         
-        qCounter.innerText = `Question: ${currentQuestionIndex + 1} / ${currentQuestions.length}`;
-        questionText.innerText = q.question;
+        const q = qbank[currentQuestionIndex];
+        document.getElementById('progressText').innerText = `Question ${currentQuestionIndex + 1} of ${qbank.length}`;
+        document.getElementById('questionText').innerText = q.question;
 
-        // Shuffle Options
-        let options = shuffleArray([...q.options]);
+        let options = [...q.options];
+        if (settings.shuffleO) shuffleArray(options);
+
         options.forEach(opt => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerText = opt;
-            btn.onclick = () => checkAnswer(btn, opt, q.answer);
+            btn.onclick = () => handleAnswerSelection(btn, opt, q);
             optionsContainer.appendChild(btn);
         });
 
-        if (mode === 'stress') {
-            startStressTimer();
+        // Stress mode timer
+        if (settings.mode === 'stress') {
+            clearInterval(timerInterval);
+            timeLeft = 15; // 15 seconds per question
+            startTimer(false);
         }
     }
 
-    function checkAnswer(selectedBtn, selectedText, correctText) {
-        // Disable all buttons
+    function handleAnswerSelection(selectedBtn, selectedText, questionData) {
+        // Disable all buttons to prevent multiple clicks
         const allBtns = optionsContainer.querySelectorAll('.option-btn');
-        allBtns.forEach(btn => btn.disabled = true);
+        allBtns.forEach(b => b.disabled = true);
         
-        clearInterval(stressTimerInterval);
+        if (settings.mode === 'stress') clearInterval(timerInterval);
 
-        if (selectedText === correctText) {
-            selectedBtn.classList.add('correct');
+        const isCorrect = selectedText === questionData.answer;
+        
+        if (isCorrect) {
             score++;
-        } else {
-            selectedBtn.classList.add('wrong');
-            // Highlight correct one
-            allBtns.forEach(btn => {
-                if (btn.innerText === correctText) btn.classList.add('correct');
-            });
+            document.getElementById('scoreText').innerText = `Score: ${score}`;
+            if (settings.instant) triggerCelebrate();
         }
+
+        if (settings.instant) {
+            // Show correctness visually
+            allBtns.forEach(btn => {
+                if (btn.innerText === questionData.answer) {
+                    btn.classList.add('correct');
+                } else if (btn === selectedBtn && !isCorrect) {
+                    btn.classList.add('wrong');
+                }
+            });
+
+            // Show rationale
+            document.getElementById('rationaleText').innerText = questionData.rationale;
+            document.getElementById('rationaleContainer').classList.remove('hidden');
+        } else {
+            // If not instant, just highlight the selected one neutrally
+            selectedBtn.style.borderColor = "var(--primary)";
+            selectedBtn.style.backgroundColor = "#eff6ff";
+        }
+
         nextBtn.classList.remove('hidden');
     }
 
-    function nextQuestion() {
+    nextBtn.addEventListener('click', () => {
         currentQuestionIndex++;
-        renderQuestion();
-    }
+        loadQuestion();
+    });
 
-    // 4. Timers
-    function startMainTimer() {
-        timerText.classList.remove('hidden');
-        mainTimerInterval = setInterval(() => {
+    function startTimer(isGlobal) {
+        updateTimerDisplay();
+        timerInterval = setInterval(() => {
             timeLeft--;
-            let m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-            let s = (timeLeft % 60).toString().padStart(2, '0');
-            timerText.innerText = `Pomodoro: ${m}:${s}`;
+            updateTimerDisplay();
             if (timeLeft <= 0) {
-                clearInterval(mainTimerInterval);
-                endGame();
+                clearInterval(timerInterval);
+                if (isGlobal) {
+                    endQuiz();
+                } else {
+                    // Stress mode timeout - auto mark wrong and move on
+                    handleAnswerSelection(document.createElement('button'), "TIMEOUT", qbank[currentQuestionIndex]);
+                }
             }
         }, 1000);
     }
 
-    function startStressTimer() {
-        clearInterval(stressTimerInterval);
-        timerContainer.classList.remove('hidden');
-        let stressTime = 15; // 15 seconds per question
-        timerBar.style.width = '100%';
-        timerBar.classList.remove('timer-warning');
-
-        stressTimerInterval = setInterval(() => {
-            stressTime--;
-            let percentage = (stressTime / 15) * 100;
-            timerBar.style.width = `${percentage}%`;
-            
-            if (stressTime <= 5) timerBar.classList.add('timer-warning');
-
-            if (stressTime <= 0) {
-                clearInterval(stressTimerInterval);
-                const correctText = currentQuestions[currentQuestionIndex].answer;
-                const allBtns = optionsContainer.querySelectorAll('.option-btn');
-                allBtns.forEach(btn => {
-                    btn.disabled = true;
-                    if (btn.innerText === correctText) btn.classList.add('correct');
-                });
-                nextBtn.classList.remove('hidden');
-            }
-        }, 1000);
+    function updateTimerDisplay() {
+        const display = document.getElementById('timerDisplay');
+        if (settings.mode === 'none') {
+            display.innerText = '';
+            return;
+        }
+        const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        const s = (timeLeft % 60).toString().padStart(2, '0');
+        display.innerText = `⏱ ${m}:${s}`;
     }
 
-    // 5. Completion & Celebration
-    function endGame() {
-        clearInterval(mainTimerInterval);
-        clearInterval(stressTimerInterval);
+    function triggerCelebrate() {
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42']
+        });
+    }
+
+    function endQuiz() {
+        clearInterval(timerInterval);
         quizScreen.classList.add('hidden');
         resultScreen.classList.remove('hidden');
-
-        const percentage = (score / currentQuestions.length) * 100;
-        document.getElementById('score-text').innerText = `${score} / ${currentQuestions.length}`;
         
-        const msg = document.getElementById('result-message');
+        const percentage = Math.round((score / qbank.length) * 100);
+        document.getElementById('finalScore').innerText = `Final Score: ${score}/${qbank.length} (${percentage}%)`;
+        
+        const msg = document.getElementById('resultMessage');
         if (percentage >= 80) {
-            msg.innerText = "Excellent performance! Ready for the clinical floor.";
-            fireConfetti();
-        } else if (percentage >= 60) {
-            msg.innerText = "Good job, but keep reviewing those critical values.";
+            msg.innerText = "Outstanding clinical reasoning! You've mastered this material.";
+            triggerCelebrate();
+            setTimeout(triggerCelebrate, 1000); // Double celebration for high score
         } else {
-            msg.innerText = "Time to hit the books again. You'll get it next time!";
+            msg.innerText = "Keep reviewing your rationales. You'll get it next time!";
         }
-    }
-
-    function fireConfetti() {
-        const canvas = document.getElementById('confetti-canvas');
-        canvas.classList.remove('hidden');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        let particles = [];
-        for (let i = 0; i < 150; i++) {
-            particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height - canvas.height,
-                w: Math.random() * 10 + 5,
-                h: Math.random() * 10 + 5,
-                color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-                speedY: Math.random() * 3 + 2,
-                speedX: Math.random() * 2 - 1,
-                rot: Math.random() * 360,
-                rotSpeed: Math.random() * 10 - 5
-            });
-        }
-
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                p.y += p.speedY;
-                p.x += p.speedX;
-                p.rot += p.rotSpeed;
-                
-                ctx.save();
-                ctx.translate(p.x + p.w/2, p.y + p.h/2);
-                ctx.rotate(p.rot * Math.PI / 180);
-                ctx.fillStyle = p.color;
-                ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
-                ctx.restore();
-            });
-            requestAnimationFrame(animate);
-        }
-        animate();
     }
 </script>
 </body>
