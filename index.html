@@ -1,196 +1,359 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اختبار MCQ</title>
+    <title>Modern Interactive MCQ Engine</title>
     <style>
+        :root {
+            --primary: #4A90E2;
+            --success: #2ECC71;
+            --danger: #E74C3C;
+            --bg-color: #F4F7F6;
+            --card-bg: #FFFFFF;
+            --text-main: #333333;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
-            line-height: 1.6;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
             padding: 20px;
         }
-        .quiz-container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .question-block {
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        .question-text {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 15px;
-            direction: ltr; /* لعرض الأسئلة الإنجليزية بشكل صحيح */
-            text-align: left;
-        }
-        .options-list {
-            list-style-type: none;
-            padding: 0;
-            direction: ltr;
-        }
-        .options-list li {
-            margin-bottom: 10px;
-        }
-        .options-list label {
-            display: flex;
-            align-items: center;
-            background: #f9f9f9;
-            padding: 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.2s;
-            border: 1px solid #ddd;
-        }
-        .options-list label:hover {
-            background: #eef2f5;
-        }
-        .options-list input[type="radio"] {
-            margin-right: 15px;
-            transform: scale(1.2);
-        }
-        .btn-submit {
-            display: block;
+
+        .container {
+            background: var(--card-bg);
             width: 100%;
-            padding: 15px;
-            background-color: #0056b3;
+            max-width: 800px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* 3D UI Upload Section */
+        #upload-section {
+            padding: 50px 20px;
+            text-align: center;
+            border: 3px dashed #CBD5E0;
+            border-radius: 12px;
+            margin: 20px;
+            background: #FAFAFA;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #upload-section:hover {
+            border-color: var(--primary);
+            background: #F0F7FF;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(74, 144, 226, 0.1);
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .upload-label {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            pointer-events: none;
+        }
+
+        /* Quiz UI */
+        #quiz-section, #result-section {
+            display: none;
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #EDF2F7;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #EDF2F7;
+            border-radius: 8px;
+            height: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: #F8FAFC;
+            border: 2px solid #E2E8F0;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+            border-color: var(--primary);
+        }
+
+        .option-btn.correct {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
+        }
+
+        .option-btn.incorrect {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-next, .btn-restart {
+            background: var(--primary);
             color: white;
             border: none;
-            border-radius: 6px;
-            font-size: 1.1em;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
             cursor: pointer;
-            margin-top: 20px;
+            display: none;
+            transition: background 0.2s;
+            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
         }
-        .btn-submit:hover {
-            background-color: #004494;
+
+        .btn-next:hover, .btn-restart:hover {
+            background: #357ABD;
         }
-        #result-container {
+
+        .explanation {
             margin-top: 20px;
-            font-size: 1.3em;
+            padding: 15px;
+            background: #FFFBEB;
+            border-left: 4px solid #F59E0B;
+            border-radius: 4px;
+            display: none;
+            font-size: 0.95rem;
+        }
+
+        /* Results */
+        .score-display {
+            font-size: 3rem;
             font-weight: bold;
             text-align: center;
+            color: var(--primary);
+            margin: 20px 0;
         }
-        .feedback {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 5px;
-            display: none;
-            direction: ltr;
-            text-align: left;
-        }
-        .correct-feedback { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .wrong-feedback { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
 
-<div class="quiz-container">
-    <h2 style="text-align: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px;">الاختبار النهائي</h2>
-    <div id="quiz-content">
-        <p style="text-align: center;">جاري تحميل الأسئلة...</p>
+<div class="container">
+    <div id="upload-section" onclick="document.getElementById('file-input').click()">
+        <p class="upload-label">📁 Click or Drag to Upload qbank.json</p>
+        <input type="file" id="file-input" accept=".json">
     </div>
-    <button class="btn-submit" id="submit-btn" style="display: none;" onclick="calculateScore()">تقديم الإجابات</button>
-    <div id="result-container"></div>
+
+    <div id="quiz-section">
+        <div class="header">
+            <span id="question-tracker">Question 1 of X</span>
+            <span id="score-tracker">Score: 0</span>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <div class="question-text" id="question-text">Loading question...</div>
+        <div class="options-grid" id="options-container"></div>
+        
+        <div class="explanation" id="explanation-box"></div>
+        
+        <div class="controls">
+            <button class="btn-next" id="next-btn" onclick="nextQuestion()">Next Question ➔</button>
+        </div>
+    </div>
+
+    <div id="result-section">
+        <h2 style="text-align: center;">Exam Complete!</h2>
+        <div class="score-display" id="final-score">0%</div>
+        <p style="text-align: center;" id="performance-msg"></p>
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="btn-restart" style="display: inline-block;" onclick="location.reload()">Load New Exam</button>
+        </div>
+    </div>
 </div>
 
 <script>
-    let questionsData = [];
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
 
-    // دالة لجلب الأسئلة من ملف JSON
-    async function loadQuestions() {
-        try {
-            const response = await fetch('questions.json');
-            questionsData = await response.json();
-            renderQuestions();
-        } catch (error) {
-            document.getElementById('quiz-content').innerHTML = '<p style="color:red; text-align:center;">حدث خطأ في تحميل بنك الأسئلة. تأكد من تشغيل الصفحة عبر سيرفر محلي (Live Server).</p>';
-            console.error('Error loading questions:', error);
-        }
-    }
+    // File Upload Handler
+    document.getElementById('file-input').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
 
-    // دالة لعرض الأسئلة في الصفحة
-    function renderQuestions() {
-        const container = document.getElementById('quiz-content');
-        container.innerHTML = ''; // مسح رسالة التحميل
-
-        questionsData.forEach((q, index) => {
-            const questionDiv = document.createElement('div');
-            questionDiv.className = 'question-block';
-            
-            // بناء الخيارات
-            let optionsHTML = '';
-            q.options.forEach((opt, optIndex) => {
-                optionsHTML += `
-                    <li>
-                        <label>
-                            <input type="radio" name="question_${index}" value="${optIndex}">
-                            ${opt}
-                        </label>
-                    </li>
-                `;
-            });
-
-            questionDiv.innerHTML = `
-                <div class="question-text">${index + 1}. ${q.question}</div>
-                <ul class="options-list">
-                    ${optionsHTML}
-                </ul>
-                <div id="feedback_${index}" class="feedback"></div>
-            `;
-            container.appendChild(questionDiv);
-        });
-
-        // إظهار زر التقديم بعد تحميل الأسئلة
-        document.getElementById('submit-btn').style.display = 'block';
-    }
-
-    // دالة لحساب النتيجة وإظهار التبرير (Explanation)
-    function calculateScore() {
-        let score = 0;
-        let allAnswered = true;
-
-        questionsData.forEach((q, index) => {
-            const selectedOption = document.querySelector(`input[name="question_${index}"]:checked`);
-            const feedbackDiv = document.getElementById(`feedback_${index}`);
-            
-            if (!selectedOption) {
-                allAnswered = false;
-            } else {
-                const answerValue = parseInt(selectedOption.value);
-                feedbackDiv.style.display = 'block';
-
-                if (answerValue === q.correctIndex) {
-                    score++;
-                    feedbackDiv.className = 'feedback correct-feedback';
-                    feedbackDiv.innerHTML = `<strong>Correct!</strong> <br> ${q.explanation}`;
-                } else {
-                    feedbackDiv.className = 'feedback wrong-feedback';
-                    feedbackDiv.innerHTML = `<strong>Incorrect.</strong> The correct answer was: ${q.options[q.correctIndex]}. <br><br> <em>Explanation:</em> ${q.explanation}`;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                questions = JSON.parse(e.target.result);
+                if (!Array.isArray(questions) || questions.length === 0) {
+                    alert("Invalid JSON format. Please ensure it is an array of question objects.");
+                    return;
                 }
+                startQuiz();
+            } catch (err) {
+                alert("Error reading JSON file. Please ensure it is properly formatted.");
             }
-        });
+        };
+        reader.readAsText(file);
+    });
 
-        if (!allAnswered) {
-            alert("يرجى الإجابة على جميع الأسئلة قبل التقديم.");
-            return;
-        }
+    // Drag and Drop styling
+    const uploadSection = document.getElementById('upload-section');
+    uploadSection.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadSection.style.borderColor = '#4A90E2';
+        uploadSection.style.background = '#F0F7FF';
+    });
+    uploadSection.addEventListener('dragleave', () => {
+        uploadSection.style.borderColor = '#CBD5E0';
+        uploadSection.style.background = '#FAFAFA';
+    });
+    uploadSection.addEventListener('drop', (e) => {
+        e.preventDefault();
+        document.getElementById('file-input').files = e.dataTransfer.files;
+        document.getElementById('file-input').dispatchEvent(new Event('change'));
+    });
 
-        const resultContainer = document.getElementById('result-container');
-        resultContainer.innerHTML = `النتيجة النهائية: ${score} من ${questionsData.length}`;
-        document.getElementById('submit-btn').disabled = true;
+    function startQuiz() {
+        document.getElementById('upload-section').style.display = 'none';
+        document.getElementById('quiz-section').style.display = 'block';
+        
+        // Randomize questions for adaptive feel
+        questions.sort(() => Math.random() - 0.5);
+        
+        loadQuestion();
     }
 
-    // بدء تشغيل الدالة عند تحميل الصفحة
-    window.onload = loadQuestions;
-</script>
+    function loadQuestion() {
+        const q = questions[currentQuestionIndex];
+        document.getElementById('question-text').textContent = q.question;
+        document.getElementById('question-tracker').textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+        document.getElementById('score-tracker').textContent = `Score: ${score}`;
+        
+        // Update Progress Bar
+        const progress = ((currentQuestionIndex) / questions.length) * 100;
+        document.getElementById('progress-bar').style.width = `${progress}%`;
 
+        const optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+        
+        // Randomize options
+        const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+        shuffledOptions.forEach(option => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = option;
+            btn.onclick = () => checkAnswer(btn, option, q.answer, q.explanation);
+            optionsContainer.appendChild(btn);
+        });
+
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('explanation-box').style.display = 'none';
+    }
+
+    function checkAnswer(selectedBtn, selectedAnswer, correctAnswer, explanation) {
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach(btn => btn.disabled = true); // Disable all clicks
+
+        if (selectedAnswer === correctAnswer) {
+            selectedBtn.classList.add('correct');
+            score++;
+            document.getElementById('score-tracker').textContent = `Score: ${score}`;
+        } else {
+            selectedBtn.classList.add('incorrect');
+            // Highlight correct answer
+            buttons.forEach(btn => {
+                if (btn.textContent === correctAnswer) {
+                    btn.classList.add('correct');
+                }
+            });
+        }
+
+        // Show Explanation if it exists in JSON
+        if (explanation) {
+            const expBox = document.getElementById('explanation-box');
+            expBox.innerHTML = `<strong>Explanation:</strong> ${explanation}`;
+            expBox.style.display = 'block';
+        }
+
+        document.getElementById('next-btn').style.display = 'inline-block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('quiz-section').style.display = 'none';
+        document.getElementById('result-section').style.display = 'block';
+        
+        const percentage = Math.round((score / questions.length) * 100);
+        document.getElementById('final-score').textContent = `${percentage}%`;
+        
+        let msg = "";
+        if (percentage >= 90) msg = "Excellent mastery of the material!";
+        else if (percentage >= 70) msg = "Good solid performance. Keep reviewing!";
+        else msg = "More review recommended. You'll get it next time!";
+        
+        document.getElementById('performance-msg').textContent = msg;
+    }
+</script>
 </body>
 </html>

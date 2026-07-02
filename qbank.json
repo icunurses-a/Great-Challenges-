@@ -1,0 +1,302 @@
+[
+    {
+        "id": 1,
+        "question": "Postpartum hemorrhage (PPH) after vaginal birth is defined as blood loss greater than:",
+        "options": [
+            "250 mL",
+            "400 mL",
+            "500 mL",
+            "1000 mL"
+        ],
+        "correct_answer": "500 mL",
+        "rationale": "Postpartum hemorrhage after a vaginal birth is clinically defined as blood loss exceeding 500 mL."
+    },
+    {
+        "id": 2,
+        "question": "Postpartum hemorrhage after cesarean birth is defined as blood loss greater than:",
+        "options": [
+            "500 mL",
+            "750 mL",
+            "1000 mL",
+            "1500 mL"
+        ],
+        "correct_answer": "1000 mL",
+        "rationale": "Due to the surgical nature of a cesarean section, postpartum hemorrhage is defined as blood loss exceeding 1000 mL."
+    },
+    {
+        "id": 3,
+        "question": "Blood loss occurring within 24 hours after birth is called:",
+        "options": [
+            "Late postpartum hemorrhage",
+            "Primary (early) postpartum hemorrhage",
+            "Secondary hemorrhage",
+            "Chronic hemorrhage"
+        ],
+        "correct_answer": "Primary (early) postpartum hemorrhage",
+        "rationale": "Primary postpartum hemorrhage refers to excessive bleeding that occurs within the first 24 hours following delivery."
+    },
+    {
+        "id": 4,
+        "question": "The appropriate intervention for uterine atony is:",
+        "options": [
+            "Surgical repair",
+            "Massage and oxytocics",
+            "Blood products",
+            "Bed rest only"
+        ],
+        "correct_answer": "Massage and oxytocics",
+        "rationale": "Uterine atony is initially managed by firmly massaging the uterine fundus and administering oxytocic medications to stimulate contractions."
+    },
+    {
+        "id": 5,
+        "question": "To prevent venous stasis, postpartum women should:",
+        "options": [
+            "Remain in bed",
+            "Ambulate and perform leg exercises",
+            "Cross their legs frequently",
+            "Avoid activity"
+        ],
+        "correct_answer": "Ambulate and perform leg exercises",
+        "rationale": "Early ambulation and leg exercises promote venous return, significantly reducing the risk of deep vein thrombosis."
+    },
+    {
+        "id": 6,
+        "question": "Postpartum infection is defined as a temperature of:",
+        "options": [
+            "37°C or higher",
+            "37.5°C or higher",
+            "38°C or higher",
+            "39°C or higher"
+        ],
+        "correct_answer": "38°C or higher",
+        "rationale": "A maternal temperature of 38°C or higher after the first 24 hours postpartum is a key clinical indicator of postpartum infection."
+    },
+    {
+        "id": 7,
+        "question": "Approximately what percentage of women experience postpartum blues?",
+        "options": [
+            "20%",
+            "50%",
+            "80%",
+            "100%"
+        ],
+        "correct_answer": "80%",
+        "rationale": "Postpartum blues are very common, affecting up to 80% of women shortly after childbirth due to hormonal fluctuations and fatigue."
+    },
+    {
+        "id": 8,
+        "question": "Unlike postpartum blues, postpartum depression:",
+        "options": [
+            "Resolves spontaneously",
+            "Does not affect mood",
+            "Worsens over time and does not go away on its own",
+            "Lasts only 2 days"
+        ],
+        "correct_answer": "Worsens over time and does not go away on its own",
+        "rationale": "Postpartum depression is a severe mood disorder that typically requires clinical intervention, as it does not resolve spontaneously like the 'blues'."
+    },
+    {
+        "id": 9,
+        "question": "Amenorrhea is defined as:",
+        "options": [
+            "Painful menstruation",
+            "Heavy menstrual bleeding",
+            "Absence of menses or menstrual bleeding",
+            "Irregular menstruation"
+        ],
+        "correct_answer": "Absence of menses or menstrual bleeding",
+        "rationale": "Amenorrhea is the medical term for the absence of menstrual periods."
+    },
+    {
+        "id": 10,
+        "question": "The principal cause of primary dysmenorrhea is:",
+        "options": [
+            "Estrogen deficiency",
+            "Ovarian cysts",
+            "Prostaglandins released from the endometrium",
+            "Fibroids"
+        ],
+        "correct_answer": "Prostaglandins released from the endometrium",
+        "rationale": "Primary dysmenorrhea is caused by an overproduction of prostaglandins by the endometrium, leading to strong, painful uterine contractions."
+    },
+    {
+        "id": 11,
+        "question": "Heavy menstrual bleeding (HMB) is defined as:",
+        "options": [
+            "Bleeding after menopause",
+            "Excessive bleeding in amount or duration during normal menstruation",
+            "Spotting between cycles",
+            "Painful menstruation"
+        ],
+        "correct_answer": "Excessive bleeding in amount or duration during normal menstruation",
+        "rationale": "HMB refers to abnormally heavy or prolonged menstrual bleeding that interferes with a woman's physical, social, or emotional quality of life."
+    },
+    {
+        "id": 12,
+        "question": "First-line therapy for heavy menstrual bleeding includes:",
+        "options": [
+            "Antibiotics",
+            "Surgery",
+            "Combined oral contraceptives or LNG-IUD",
+            "Hysterectomy"
+        ],
+        "correct_answer": "Combined oral contraceptives or LNG-IUD",
+        "rationale": "Hormonal treatments like combined oral contraceptives or the levonorgestrel-releasing intrauterine device (LNG-IUD) are first-line medical therapies for HMB."
+    },
+    {
+        "id": 13,
+        "question": "PCOS is characterized by:",
+        "options": [
+            "Amenorrhea only",
+            "Obesity only",
+            "Menstrual dysfunction, hyperandrogenism, and ovulatory disruption",
+            "Pelvic pain only"
+        ],
+        "correct_answer": "Menstrual dysfunction, hyperandrogenism, and ovulatory disruption",
+        "rationale": "Polycystic Ovary Syndrome (PCOS) is a complex endocrine disorder characterized by chronic anovulation, hyperandrogenism, and polycystic ovaries."
+    },
+    {
+        "id": 14,
+        "question": "Acanthosis nigricans in PCOS is a marker of:",
+        "options": [
+            "Hypertension",
+            "Hyperthyroidism",
+            "Insulin resistance",
+            "Anemia"
+        ],
+        "correct_answer": "Insulin resistance",
+        "rationale": "Acanthosis nigricans, darkened patches of skin often found in skin folds, is a clinical marker of severe insulin resistance, commonly seen in PCOS."
+    },
+    {
+        "id": 15,
+        "question": "Classic symptoms of endometriosis include:",
+        "options": [
+            "Amenorrhea and obesity",
+            "Urinary frequency and dysuria",
+            "Progressive dysmenorrhea and deep dyspareunia",
+            "Fever and discharge"
+        ],
+        "correct_answer": "Progressive dysmenorrhea and deep dyspareunia",
+        "rationale": "Endometriosis classically presents with severe, progressive pelvic pain during menstruation (dysmenorrhea) and pain during intercourse (dyspareunia)."
+    },
+    {
+        "id": 16,
+        "question": "The gold standard for diagnosis of bacterial vaginosis is:",
+        "options": [
+            "Ultrasound",
+            "Culture",
+            "Gram stain with Nugent scoring system",
+            "CBC"
+        ],
+        "correct_answer": "Gram stain with Nugent scoring system",
+        "rationale": "The Nugent score, derived from a vaginal gram stain, is the objective gold standard for diagnosing bacterial vaginosis."
+    },
+    {
+        "id": 17,
+        "question": "The typical vaginal discharge in vulvovaginal candidiasis is:",
+        "options": [
+            "Thin gray discharge",
+            "Green frothy discharge",
+            "Thick, white, curd-like discharge",
+            "Bloody discharge"
+        ],
+        "correct_answer": "Thick, white, curd-like discharge",
+        "rationale": "Vulvovaginal candidiasis (yeast infection) is characterized by intense itching and a distinct thick, white, cottage cheese-like discharge."
+    },
+    {
+        "id": 18,
+        "question": "The decrease in inhibin release after menopause eventually results in:",
+        "options": [
+            "Decreased FSH levels",
+            "Increased estrogen levels",
+            "Sustained elevation of FSH levels",
+            "Increased progesterone levels"
+        ],
+        "correct_answer": "Sustained elevation of FSH levels",
+        "rationale": "As ovarian follicles deplete, inhibin levels fall, removing negative feedback on the pituitary and causing a sustained rise in Follicle-Stimulating Hormone (FSH)."
+    },
+    {
+        "id": 19,
+        "question": "After menopause, the ovaries typically become:",
+        "options": [
+            "Enlarged and tender",
+            "Small and not palpable",
+            "Cystic and enlarged",
+            "Painful on examination"
+        ],
+        "correct_answer": "Small and not palpable",
+        "rationale": "Postmenopausal ovaries atrophy and shrink due to the cessation of follicular development, making them typically non-palpable on clinical exam."
+    },
+    {
+        "id": 20,
+        "question": "The conclusion of the late menopausal transition phase is marked by:",
+        "options": [
+            "First hot flash",
+            "Elevated FSH",
+            "Final menstrual period (FMP)",
+            "Vaginal atrophy"
+        ],
+        "correct_answer": "Final menstrual period (FMP)",
+        "rationale": "The menopausal transition officially ends with the final menstrual period, though menopause is only confirmed retroactively after 12 months of amenorrhea."
+    },
+    {
+        "id": 21,
+        "question": "A common symptom during the late menopausal transition is:",
+        "options": [
+            "Hypertension",
+            "Headache only",
+            "Vasomotor symptoms",
+            "Hyperglycemia"
+        ],
+        "correct_answer": "Vasomotor symptoms",
+        "rationale": "Vasomotor symptoms, commonly known as hot flashes and night sweats, are highly prevalent during the late menopausal transition due to fluctuating estrogen levels."
+    },
+    {
+        "id": 22,
+        "question": "The vaginal environment during menopause changes from:",
+        "options": [
+            "Alkaline to acidic",
+            "Acidic to alkaline",
+            "Neutral to acidic",
+            "Neutral to alkaline"
+        ],
+        "correct_answer": "Acidic to alkaline",
+        "rationale": "Decreased estrogen lowers glycogen in vaginal epithelial cells, reducing lactobacilli and shifting the vaginal pH from an acidic state to a more alkaline state."
+    },
+    {
+        "id": 23,
+        "question": "Vasomotor symptoms are characterized by:",
+        "options": [
+            "Vaginal bleeding",
+            "Flushing, sweating, and sensation of heat",
+            "Pelvic pain",
+            "Urinary urgency"
+        ],
+        "correct_answer": "Flushing, sweating, and sensation of heat",
+        "rationale": "Hot flashes (vasomotor symptoms) present as sudden feelings of intense heat, often accompanied by flushing of the skin and profuse sweating."
+    },
+    {
+        "id": 24,
+        "question": "The most effective treatment for vasomotor symptoms and vaginal atrophy is:",
+        "options": [
+            "Antibiotics",
+            "Exercise only",
+            "Hormone therapy (HT)",
+            "Surgery"
+        ],
+        "correct_answer": "Hormone therapy (HT)",
+        "rationale": "Systemic hormone therapy remains the most effective FDA-approved treatment for relieving severe menopausal vasomotor symptoms and vulvovaginal atrophy."
+    },
+    {
+        "id": 25,
+        "question": "The best prevention for breast engorgement includes:",
+        "options": [
+            "Delaying breastfeeding",
+            "Formula feeding",
+            "Early and unrestricted breastfeeding",
+            "Stopping breastfeeding"
+        ],
+        "correct_answer": "Early and unrestricted breastfeeding",
+        "rationale": "Frequent, early, and unrestricted breastfeeding ensures proper milk removal, which is the most effective way to prevent severe breast engorgement."
+    }
+]
