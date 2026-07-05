@@ -329,7 +329,7 @@
                     <label>Email</label>
                 </div>
                 <div class="input-group">
-                    <input type="password" required>
+                    <input type="password" id="signup-password" required>
                     <label>Password</label>
                 </div>
                 <button type="submit" class="submit-btn">Initialize Account</button>
@@ -406,6 +406,7 @@
             event.preventDefault();
             const usernameInput = document.getElementById('signup-username').value;
             const emailInput = document.getElementById('signup-email').value;
+            const passwordInput = document.getElementById('signup-password').value; 
 
             let users = JSON.parse(localStorage.getItem('app_users'));
             
@@ -416,16 +417,22 @@
                 return;
             }
 
-            // Save the new user
+            // Save the new user with password
             users.push({ 
                 username: usernameInput, 
                 email: emailInput, 
+                password: passwordInput,
                 date: new Date().toLocaleDateString() 
             });
             localStorage.setItem('app_users', JSON.stringify(users));
             
             alert("Account initialized successfully! Please Login.");
             switchForm('login-form');
+            
+            // Clear input fields after successful signup
+            document.getElementById('signup-username').value = '';
+            document.getElementById('signup-email').value = '';
+            document.getElementById('signup-password').value = '';
         }
 
         // Fetch browser and OS information
@@ -446,13 +453,29 @@
             const username = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
             
-            // ------ Admin Recognition System ------
             let is_admin = false;
-            // Set the admin username and password here
+            let is_valid_user = false;
+
+            // ------ 1. Admin Validation ------
             if (username === "admin" && pass === "admin123") {
                 is_admin = true;
+                is_valid_user = true;
+            } else {
+                // ------ 2. Standard User Validation ------
+                let users = JSON.parse(localStorage.getItem('app_users')) || [];
+                const foundUser = users.find(u => u.username === username && u.password === pass);
+                if (foundUser) {
+                    is_valid_user = true;
+                }
             }
 
+            // ------ Stop login if credentials are wrong ------
+            if (!is_valid_user) {
+                alert("ACCESS DENIED: Invalid username or password.");
+                return; // Stop execution completely
+            }
+
+            // If valid, proceed with visual effects and email
             btn.disabled = true;
             btn.innerText = "Authenticating...";
 
