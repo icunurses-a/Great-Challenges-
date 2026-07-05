@@ -3,357 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Interactive MCQ Engine</title>
+    <title>Glassmorphism Full System</title>
     <style>
-        :root {
-            --primary: #4A90E2;
-            --success: #2ECC71;
-            --danger: #E74C3C;
-            --bg-color: #F4F7F6;
-            --card-bg: #FFFFFF;
-            --text-main: #333333;
-        }
-
+        /* Base Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden; position: relative;
         }
 
-        .container {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 800px;
-            border-radius: 16px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            transition: all 0.3s ease;
+        /* Background Shapes */
+        .circle {
+            position: absolute; border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.1));
+            backdrop-filter: blur(5px); z-index: 1; animation: float 6s ease-in-out infinite;
+        }
+        .circle-1 { width: 150px; height: 150px; top: 20%; left: 30%; }
+        .circle-2 { width: 200px; height: 200px; bottom: 20%; right: 30%; animation-delay: -3s; }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+
+        /* Glass Container */
+        .glass-container {
+            z-index: 2; width: 380px; padding: 50px 40px; border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+            text-align: center; color: #fff;
         }
 
-        /* 3D UI Upload Section */
-        #upload-section {
-            padding: 50px 20px;
-            text-align: center;
-            border: 3px dashed #CBD5E0;
-            border-radius: 12px;
-            margin: 20px;
-            background: #FAFAFA;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
+        h2 { font-size: 32px; font-weight: 600; margin-bottom: 30px; letter-spacing: 1px; }
 
-        #upload-section:hover {
-            border-color: var(--primary);
-            background: #F0F7FF;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(74, 144, 226, 0.1);
+        /* Form Elements */
+        .input-group { margin-bottom: 20px; }
+        input, select {
+            width: 100%; padding: 15px 20px; border: none; border-radius: 30px;
+            background: rgba(255, 255, 255, 0.2); color: #fff; font-size: 16px;
+            outline: none; border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.3s ease;
         }
+        input::placeholder { color: rgba(255, 255, 255, 0.8); }
+        input:focus, select:focus { background: rgba(255, 255, 255, 0.3); border: 1px solid rgba(255, 255, 255, 0.5); }
+        select option { color: #333; } /* So text is readable when dropdown opens */
 
-        #file-input {
-            display: none;
+        button {
+            width: 100%; padding: 15px 20px; margin-top: 10px; border: none; border-radius: 30px;
+            background: #fff; color: #764ba2; font-size: 16px; font-weight: bold; cursor: pointer;
+            transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
+        button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
 
-        .upload-label {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--primary);
-            pointer-events: none;
-        }
+        .links { margin-top: 25px; font-size: 14px; display: flex; justify-content: space-between; }
+        .links a { color: #fff; text-decoration: none; cursor: pointer; transition: opacity 0.3s; }
+        .links a:hover { opacity: 0.7; }
 
-        /* Quiz UI */
-        #quiz-section, #result-section {
-            display: none;
-            padding: 30px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #EDF2F7;
-        }
-
-        .progress-container {
-            width: 100%;
-            background: #EDF2F7;
-            border-radius: 8px;
-            height: 10px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: var(--primary);
-            width: 0%;
-            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .question-text {
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-bottom: 25px;
-            line-height: 1.5;
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-        }
-
-        .option-btn {
-            background: #F8FAFC;
-            border: 2px solid #E2E8F0;
-            padding: 15px 20px;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-        }
-
-        .option-btn:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.08);
-            border-color: var(--primary);
-        }
-
-        .option-btn.correct {
-            background: var(--success);
-            color: white;
-            border-color: var(--success);
-            box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
-        }
-
-        .option-btn.incorrect {
-            background: var(--danger);
-            color: white;
-            border-color: var(--danger);
-        }
-
-        .controls {
-            margin-top: 30px;
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .btn-next, .btn-restart {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            display: none;
-            transition: background 0.2s;
-            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
-        }
-
-        .btn-next:hover, .btn-restart:hover {
-            background: #357ABD;
-        }
-
-        .explanation {
-            margin-top: 20px;
-            padding: 15px;
-            background: #FFFBEB;
-            border-left: 4px solid #F59E0B;
-            border-radius: 4px;
-            display: none;
-            font-size: 0.95rem;
-        }
-
-        /* Results */
-        .score-display {
-            font-size: 3rem;
-            font-weight: bold;
-            text-align: center;
-            color: var(--primary);
-            margin: 20px 0;
-        }
+        /* Display utilities */
+        .hidden { display: none; }
+        #message-box { margin-top: 20px; font-size: 14px; font-weight: bold; min-height: 20px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="upload-section" onclick="document.getElementById('file-input').click()">
-        <p class="upload-label">📁 Click or Drag to Upload qbank.json</p>
-        <input type="file" id="file-input" accept=".json">
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2"></div>
+
+    <div class="glass-container">
+        <h2 id="form-title">Login</h2>
+
+        <!-- LOGIN FORM -->
+        <form id="login-form">
+            <div class="input-group">
+                <input type="text" id="login-user" placeholder="Username" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="login-pass" placeholder="Password" required>
+            </div>
+            <button type="submit">Log In</button>
+        </form>
+
+        <!-- SIGNUP FORM -->
+        <form id="signup-form" class="hidden">
+            <div class="input-group">
+                <input type="text" id="signup-user" placeholder="Choose Username" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="signup-pass" placeholder="Choose Password" required>
+            </div>
+            <div class="input-group">
+                <select id="signup-role" required>
+                    <option value="" disabled selected>Select Role</option>
+                    <option value="Standard User">Standard User</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Administrator">Administrator</option>
+                </select>
+            </div>
+            <button type="submit">Create Account</button>
+        </form>
+
+        <!-- FORGOT PASSWORD FORM -->
+        <form id="forgot-form" class="hidden">
+            <div class="input-group">
+                <input type="text" id="forgot-user" placeholder="Enter Username" required>
+            </div>
+            <button type="submit">Recover Password</button>
+        </form>
+        
+        <div id="message-box"></div>
+
+        <div class="links">
+            <a id="link-forgot">Forgot Password?</a>
+            <a id="link-toggle">Sign Up</a>
+        </div>
     </div>
 
-    <div id="quiz-section">
-        <div class="header">
-            <span id="question-tracker">Question 1 of X</span>
-            <span id="score-tracker">Score: 0</span>
-        </div>
-        <div class="progress-container">
-            <div class="progress-bar" id="progress-bar"></div>
-        </div>
+    <script>
+        const API_URL = 'http://localhost:3000';
         
-        <div class="question-text" id="question-text">Loading question...</div>
-        <div class="options-grid" id="options-container"></div>
+        // Form Elements
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const forgotForm = document.getElementById('forgot-form');
+        const formTitle = document.getElementById('form-title');
+        const messageBox = document.getElementById('message-box');
         
-        <div class="explanation" id="explanation-box"></div>
-        
-        <div class="controls">
-            <button class="btn-next" id="next-btn" onclick="nextQuestion()">Next Question ➔</button>
-        </div>
-    </div>
+        // Link Elements
+        const linkToggle = document.getElementById('link-toggle');
+        const linkForgot = document.getElementById('link-forgot');
 
-    <div id="result-section">
-        <h2 style="text-align: center;">Exam Complete!</h2>
-        <div class="score-display" id="final-score">0%</div>
-        <p style="text-align: center;" id="performance-msg"></p>
-        <div style="text-align: center; margin-top: 30px;">
-            <button class="btn-restart" style="display: inline-block;" onclick="location.reload()">Load New Exam</button>
-        </div>
-    </div>
-</div>
+        // State Tracking
+        let currentMode = 'login'; // login, signup, forgot
 
-<script>
-    let questions = [];
-    let currentQuestionIndex = 0;
-    let score = 0;
+        // UI Toggling
+        function switchMode(mode) {
+            currentMode = mode;
+            loginForm.classList.add('hidden');
+            signupForm.classList.add('hidden');
+            forgotForm.classList.add('hidden');
+            messageBox.innerText = ""; // Clear messages
 
-    // File Upload Handler
-    document.getElementById('file-input').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                questions = JSON.parse(e.target.result);
-                if (!Array.isArray(questions) || questions.length === 0) {
-                    alert("Invalid JSON format. Please ensure it is an array of question objects.");
-                    return;
-                }
-                startQuiz();
-            } catch (err) {
-                alert("Error reading JSON file. Please ensure it is properly formatted.");
+            if (mode === 'login') {
+                formTitle.innerText = "Welcome";
+                loginForm.classList.remove('hidden');
+                linkToggle.innerText = "Sign Up";
+                linkForgot.style.display = "block";
+            } else if (mode === 'signup') {
+                formTitle.innerText = "Register";
+                signupForm.classList.remove('hidden');
+                linkToggle.innerText = "Back to Login";
+                linkForgot.style.display = "none";
+            } else if (mode === 'forgot') {
+                formTitle.innerText = "Recovery";
+                forgotForm.classList.remove('hidden');
+                linkToggle.innerText = "Back to Login";
+                linkForgot.style.display = "none";
             }
-        };
-        reader.readAsText(file);
-    });
+        }
 
-    // Drag and Drop styling
-    const uploadSection = document.getElementById('upload-section');
-    uploadSection.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadSection.style.borderColor = '#4A90E2';
-        uploadSection.style.background = '#F0F7FF';
-    });
-    uploadSection.addEventListener('dragleave', () => {
-        uploadSection.style.borderColor = '#CBD5E0';
-        uploadSection.style.background = '#FAFAFA';
-    });
-    uploadSection.addEventListener('drop', (e) => {
-        e.preventDefault();
-        document.getElementById('file-input').files = e.dataTransfer.files;
-        document.getElementById('file-input').dispatchEvent(new Event('change'));
-    });
-
-    function startQuiz() {
-        document.getElementById('upload-section').style.display = 'none';
-        document.getElementById('quiz-section').style.display = 'block';
-        
-        // Randomize questions for adaptive feel
-        questions.sort(() => Math.random() - 0.5);
-        
-        loadQuestion();
-    }
-
-    function loadQuestion() {
-        const q = questions[currentQuestionIndex];
-        document.getElementById('question-text').textContent = q.question;
-        document.getElementById('question-tracker').textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
-        document.getElementById('score-tracker').textContent = `Score: ${score}`;
-        
-        // Update Progress Bar
-        const progress = ((currentQuestionIndex) / questions.length) * 100;
-        document.getElementById('progress-bar').style.width = `${progress}%`;
-
-        const optionsContainer = document.getElementById('options-container');
-        optionsContainer.innerHTML = '';
-        
-        // Randomize options
-        const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
-
-        shuffledOptions.forEach(option => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.textContent = option;
-            btn.onclick = () => checkAnswer(btn, option, q.answer, q.explanation);
-            optionsContainer.appendChild(btn);
+        linkToggle.addEventListener('click', () => {
+            switchMode(currentMode === 'login' ? 'signup' : 'login');
         });
 
-        document.getElementById('next-btn').style.display = 'none';
-        document.getElementById('explanation-box').style.display = 'none';
-    }
+        linkForgot.addEventListener('click', () => {
+            switchMode('forgot');
+        });
 
-    function checkAnswer(selectedBtn, selectedAnswer, correctAnswer, explanation) {
-        const buttons = document.querySelectorAll('.option-btn');
-        buttons.forEach(btn => btn.disabled = true); // Disable all clicks
-
-        if (selectedAnswer === correctAnswer) {
-            selectedBtn.classList.add('correct');
-            score++;
-            document.getElementById('score-tracker').textContent = `Score: ${score}`;
-        } else {
-            selectedBtn.classList.add('incorrect');
-            // Highlight correct answer
-            buttons.forEach(btn => {
-                if (btn.textContent === correctAnswer) {
-                    btn.classList.add('correct');
+        // Helper to handle API requests
+        async function handleRequest(endpoint, payload) {
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                messageBox.style.color = response.ok ? '#98ff98' : '#ff9999';
+                messageBox.innerText = data.message;
+                
+                if (response.ok && endpoint === '/signup') {
+                    setTimeout(() => switchMode('login'), 2000); // go to login after success
                 }
+            } catch (error) {
+                messageBox.style.color = '#ff9999';
+                messageBox.innerText = "Server error. Is the Node.js server running?";
+            }
+        }
+
+        // Submissions
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleRequest('/login', {
+                username: document.getElementById('login-user').value,
+                password: document.getElementById('login-pass').value
             });
-        }
+        });
 
-        // Show Explanation if it exists in JSON
-        if (explanation) {
-            const expBox = document.getElementById('explanation-box');
-            expBox.innerHTML = `<strong>Explanation:</strong> ${explanation}`;
-            expBox.style.display = 'block';
-        }
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleRequest('/signup', {
+                username: document.getElementById('signup-user').value,
+                password: document.getElementById('signup-pass').value,
+                role: document.getElementById('signup-role').value
+            });
+        });
 
-        document.getElementById('next-btn').style.display = 'inline-block';
-    }
-
-    function nextQuestion() {
-        currentQuestionIndex++;
-        if (currentQuestionIndex < questions.length) {
-            loadQuestion();
-        } else {
-            showResults();
-        }
-    }
-
-    function showResults() {
-        document.getElementById('quiz-section').style.display = 'none';
-        document.getElementById('result-section').style.display = 'block';
-        
-        const percentage = Math.round((score / questions.length) * 100);
-        document.getElementById('final-score').textContent = `${percentage}%`;
-        
-        let msg = "";
-        if (percentage >= 90) msg = "Excellent mastery of the material!";
-        else if (percentage >= 70) msg = "Good solid performance. Keep reviewing!";
-        else msg = "More review recommended. You'll get it next time!";
-        
-        document.getElementById('performance-msg').textContent = msg;
-    }
-</script>
+        forgotForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleRequest('/forgot', {
+                username: document.getElementById('forgot-user').value
+            });
+        });
+    </script>
 </body>
 </html>
