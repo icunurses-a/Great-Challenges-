@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Gateway - User Management</title>
+    <style>
+        :root {
+            --primary: #ff0055; /* لون مختلف للآدمن (أحمر وردي) */
+            --bg-dark: #0f0c29;
+            --text-light: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(45deg, var(--bg-dark), #302b63, #24243e);
+            color: var(--text-light);
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            text-shadow: 0 0 15px rgba(255, 0, 85, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .admin-container {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            color: var(--primary);
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .delete-btn {
+            background: transparent;
+            border: 1px solid #ff4444;
+            color: #ff4444;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #ff4444;
+            color: white;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+        }
+
+        .empty-msg {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255,255,255,0.5);
+            font-style: italic;
+        }
+        
+        .logout {
+            margin-top: 30px;
+            color: var(--text-light);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            padding-bottom: 2px;
+            transition: color 0.3s;
+        }
+        .logout:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>COMMAND CENTER</h1>
+        <p>System Administrator Access</p>
+    </div>
+
+    <div class="admin-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Date Joined</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="user-table-body">
+                <!-- سيتم حقن بيانات المستخدمين هنا عبر الجافاسكربت -->
+            </tbody>
+        </table>
+    </div>
+
+    <a href="index.html" class="logout">Secure Logout</a>
+
+    <script>
+        // دالة لعرض المستخدمين في الجدول
+        function loadUsers() {
+            const tableBody = document.getElementById('user-table-body');
+            const users = JSON.parse(localStorage.getItem('app_users')) || [];
+
+            tableBody.innerHTML = ''; // تفريغ الجدول قبل إعادة التعبئة
+
+            if (users.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="empty-msg">No users registered in the system yet.</td></tr>';
+                return;
+            }
+
+            users.forEach((user, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td>${user.date}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteUser(${index})">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // دالة حذف المستخدم
+        function deleteUser(index) {
+            if(confirm("Are you sure you want to terminate this account?")) {
+                let users = JSON.parse(localStorage.getItem('app_users'));
+                users.splice(index, 1); // حذف المستخدم من المصفوفة
+                localStorage.setItem('app_users', JSON.stringify(users)); // حفظ التحديث
+                loadUsers(); // إعادة تحميل الجدول
+            }
+        }
+
+        // تشغيل عرض المستخدمين عند تحميل الصفحة
+        window.onload = loadUsers;
+    </script>
+</body>
+</html>
