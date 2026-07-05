@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Human Growth & Development Exam</title>
+  
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* Theme Variables */
+    :root {
+      --bg-base: #0f172a;
+      --bg-card: #1e293b;
+      --bg-sidebar: #0f172a;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #14b8a6;
+      --primary-hover: #0d9488;
+      --border: #334155;
+      --correct: #22c55e;
+      --incorrect: #ef4444;
+      --skipped: #eab308;
+    }
+    [data-theme="dawn"] {
+      --bg-base: #fff7ed;
+      --bg-card: #ffedd5;
+      --bg-sidebar: #fff7ed;
+      --text-main: #431407;
+      --text-muted: #9a3412;
+      --primary: #ea580c;
+      --primary-hover: #c2410c;
+      --border: #fed7aa;
+    }
+    [data-theme="ocean"] {
+      --bg-base: #ecfeff;
+      --bg-card: #cffafe;
+      --bg-sidebar: #ecfeff;
+      --text-main: #164e63;
+      --text-muted: #0891b2;
+      --primary: #0ea5e9;
+      --primary-hover: #0284c7;
+      --border: #a5f3fc;
+    }
+    [data-theme="forest"] {
+      --bg-base: #f0fdf4;
+      --bg-card: #dcfce7;
+      --bg-sidebar: #f0fdf4;
+      --text-main: #14532d;
+      --text-muted: #16a34a;
+      --primary: #22c55e;
+      --primary-hover: #16a34a;
+      --border: #bbf7d0;
+    }
+    [data-theme="ember"] {
+      --bg-base: #270606;
+      --bg-card: #450a0a;
+      --bg-sidebar: #270606;
+      --text-main: #fef2f2;
+      --text-muted: #fca5a5;
+      --primary: #ef4444;
+      --primary-hover: #dc2626;
+      --border: #7f1d1d;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      overflow-x: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+    /* Canvas Overlay */
+    #celebration-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .themed-card { background-color: var(--bg-card); border: 1px solid var(--border); }
+    .themed-sidebar { background-color: var(--bg-sidebar); border-right: 1px solid var(--border); }
+    .themed-button { background-color: var(--primary); color: #fff; }
+    .themed-button:hover { background-color: var(--primary-hover); }
+    .themed-border { border-color: var(--border); }
+    
+    .status-correct { background-color: var(--correct) !important; color: white !important; }
+    .status-incorrect { background-color: var(--incorrect) !important; color: white !important; }
+    .status-skipped { background-color: var(--skipped) !important; color: #431407 !important; }
+    .status-flagged::after {
+      content: ''; position: absolute; top: 2px; right: 2px; width: 8px; height: 8px;
+      background-color: #f97316; border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <canvas id="celebration-canvas"></canvas>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+    // ==========================================
+    // DATA SOURCE: 200 UNIQUE QUESTIONS
+    // ==========================================
+    // Format: [Source, Question, Opt1, Opt2, Opt3, Opt4, AnsIndex, Hint, Explanation]
+    const rawQuestions = [
+      // THEORIES & FOUNDATIONS (1-20)
+      ["Theories", "Who is considered the father of psychoanalytic theory?", "Jean Piaget", "Sigmund Freud", "Erik Erikson", "Lev Vygotsky", 1, "He focused on the unconscious mind.", "Sigmund Freud developed psychoanalytic theory, emphasizing unconscious drives."],
+      ["Theories", "According to Erikson, what is the crisis of infancy?", "Trust vs. Mistrust", "Autonomy vs. Shame", "Initiative vs. Guilt", "Industry vs. Inferiority", 0, "It deals with relying on caregivers.", "Infants must learn to trust that their basic needs will be met by caregivers."],
+      ["Theories", "Piaget's first stage of cognitive development is called:", "Preoperational", "Concrete Operational", "Sensorimotor", "Formal Operational", 2, "It involves senses and movement.", "The sensorimotor stage lasts from birth to age 2, focusing on sensory and motor experiences."],
+      ["Theories", "Vygotsky's concept of the gap between what a child can do alone and with help is:", "Assimilation", "Zone of Proximal Development", "Scaffolding", "Accommodation", 1, "It represents the 'proximal' learning area.", "The ZPD is the difference between independent ability and ability with guidance."],
+      ["Theories", "Which theorist is most associated with classical conditioning?", "B.F. Skinner", "Albert Bandura", "Ivan Pavlov", "John Bowlby", 2, "He experimented with dogs.", "Pavlov discovered classical conditioning through his work on canine digestion."],
+      ["Theories", "B.F. Skinner's operant conditioning relies on:", "Unconscious urges", "Modeling", "Reinforcements and punishments", "Social interaction", 2, "It focuses on consequences of behavior.", "Operant conditioning shapes behavior through positive/negative reinforcement and punishment."],
+      ["Theories", "Bandura's Social Learning Theory emphasizes:", "Observational learning", "Genetic mapping", "Psychosexual stages", "Information processing", 0, "Think of the Bobo doll experiment.", "Bandura showed that children learn by observing and imitating others (modeling)."],
+      ["Theories", "Bronfenbrenner's ecological systems theory places the child's immediate environment in the:", "Macrosystem", "Microsystem", "Exosystem", "Chronosystem", 1, "Micro means small or close.", "The microsystem includes family, school, and peers—the direct environment."],
+      ["Theories", "Lorenz's study of baby geese demonstrated the concept of:", "Imprinting", "Scaffolding", "Assimilation", "Object permanence", 0, "It's a rapid, innate learning process.", "Imprinting is an innate form of learning where animals attach to the first moving object they see."],
+      ["Theories", "Information Processing Theory compares the human mind to a:", "Blank slate", "Sponge", "Computer", "Library", 2, "It uses terms like encoding and retrieval.", "It likens human cognition to computer processing (input, storage, output)."],
+      ["Theories", "In Piaget's theory, modifying an existing schema to fit new information is called:", "Assimilation", "Accommodation", "Equilibration", "Conservation", 1, "You are 'accommodating' the new details.", "Accommodation involves changing existing mental structures to understand new experiences."],
+      ["Theories", "Maslow's hierarchy places which needs at the very bottom?", "Safety", "Esteem", "Physiological", "Self-actualization", 2, "These are required for basic survival.", "Physiological needs (food, water, sleep) must be met before higher-level needs."],
+      ["Theories", "Which theory emphasizes the evolutionary basis of behavior?", "Ethology", "Behaviorism", "Humanism", "Cognitive Theory", 0, "It focuses on adaptation and survival.", "Ethology looks at the adaptive, or survival, value of behavior and its evolutionary history."],
+      ["Theories", "Bowlby is best known for his work on:", "Moral development", "Attachment theory", "Cognitive mapping", "Language acquisition", 1, "It deals with emotional bonds.", "Bowlby's attachment theory explains the enduring psychological connectedness between humans."],
+      ["Theories", "According to Freud, which part of the personality is present at birth and operates on the pleasure principle?", "Ego", "Superego", "Id", "Libido", 2, "It wants immediate gratification.", "The Id is the primitive, instinctual part of the mind present from birth."],
+      ["Theories", "Erikson's stage for adolescence is:", "Intimacy vs. Isolation", "Identity vs. Role Confusion", "Generativity vs. Stagnation", "Integrity vs. Despair", 1, "Teens are figuring out who they are.", "Adolescents explore their independence and develop a sense of self in this stage."],
+      ["Theories", "Kohlberg's theory focuses on:", "Psychosexual development", "Moral development", "Physical growth", "Memory capacity", 1, "It involves dilemmas like the Heinz dilemma.", "Kohlberg studied how individuals reason through moral dilemmas across different stages."],
+      ["Theories", "Which of the following is NOT one of Piaget's stages?", "Sensorimotor", "Preoperational", "Post-conventional", "Formal operational", 2, "One belongs to Kohlberg.", "Post-conventional is a stage of moral development by Kohlberg, not cognitive by Piaget."],
+      ["Theories", "What is the term for a temporary support given to a child to help them learn a task?", "Scaffolding", "Assimilation", "Centration", "Egocentrism", 0, "Think of building construction.", "Scaffolding is adjusting the support offered during a teaching session to fit the child's current level."],
+      ["Theories", "The 'nature vs. nurture' debate discusses:", "Parenting styles", "Genetics vs. Environment", "Continuous vs. Discontinuous growth", "Early vs. Later experiences", 1, "Biology vs. surroundings.", "Nature refers to biological/genetic predispositions; nurture refers to environmental influences."],
+
+      // RESEARCH METHODS (21-30)
+      ["Research", "A study that tests the same individuals repeatedly over a long period is:", "Cross-sectional", "Longitudinal", "Sequential", "Correlational", 1, "It goes a 'long' time.", "Longitudinal research studies the same group of people at multiple time points."],
+      ["Research", "A cross-sectional study compares:", "The same people over time", "Different age groups at one time", "Only animals", "Historical records", 1, "It takes a 'slice' of the population.", "It tests individuals of different ages at the same single point in time."],
+      ["Research", "Which method establishes cause and effect?", "Correlational study", "Case study", "Experimental study", "Naturalistic observation", 2, "It involves manipulating variables.", "Only controlled experiments can reliably establish causal relationships."],
+      ["Research", "In an experiment, the variable manipulated by the researcher is the:", "Dependent variable", "Confounding variable", "Independent variable", "Control variable", 2, "It's the one 'I' change.", "The independent variable is changed to see its effect on the dependent variable."],
+      ["Research", "A correlation coefficient of -0.85 indicates:", "A weak negative relationship", "A strong negative relationship", "A strong positive relationship", "No relationship", 1, "It is close to -1.0.", "Values closer to -1.0 indicate a strong negative correlation (as one goes up, the other goes down)."],
+      ["Research", "Observing children in a playground without intervening is called:", "Structured observation", "Clinical interview", "Naturalistic observation", "Case study", 2, "It happens in nature.", "Naturalistic observation involves watching behavior in real-world settings."],
+      ["Research", "A case study focuses on:", "Large populations", "A single individual or small group", "Statistical averages", "Survey data", 1, "It provides in-depth analysis.", "Case studies gather extensive information about a single person or a very small group."],
+      ["Research", "In research, ensuring participants know the risks before agreeing is called:", "Debriefing", "Confidentiality", "Informed consent", "Random assignment", 2, "They must be 'informed'.", "Informed consent is an ethical requirement ensuring participants understand the study before joining."],
+      ["Research", "A sequential design combines:", "Case studies and surveys", "Cross-sectional and longitudinal approaches", "Independent and dependent variables", "Nature and nurture", 1, "It uses a sequence of both major time designs.", "Sequential designs follow different age groups over a period of time, blending both methods."],
+      ["Research", "The group in an experiment that does NOT receive the treatment is the:", "Experimental group", "Control group", "Variable group", "Sample group", 1, "They serve as a baseline.", "The control group provides a baseline for comparison against the experimental group."],
+
+      // GENETICS & PRENATAL (31-45)
+      ["Genetics", "Humans typically have how many pairs of chromosomes?", "21", "23", "46", "22", 1, "Total is 46.", "Humans have 23 pairs of chromosomes, for a total of 46."],
+      ["Genetics", "A person's actual genetic makeup is their:", "Phenotype", "Karyotype", "Genotype", "Dominant trait", 2, "It sounds like 'gene'.", "Genotype is the specific genetic blueprint, while phenotype is the physical expression."],
+      ["Genetics", "Which sex chromosomes dictate a biological male?", "XX", "XY", "YY", "XXX", 1, "Males inherit a Y from their father.", "The XY combination results in male biological sex characteristics."],
+      ["Genetics", "Down syndrome is most commonly caused by:", "A missing X chromosome", "An extra 21st chromosome", "A recessive gene", "Environmental toxins", 1, "It's also called Trisomy 21.", "Down syndrome typically results from the presence of a third copy of chromosome 21."],
+      ["Prenatal", "The first two weeks of prenatal development are called the:", "Embryonic period", "Fetal period", "Germinal period", "Neonatal period", 2, "It starts with a 'germ'.", "The germinal period lasts from conception until the zygote implants in the uterine wall."],
+      ["Prenatal", "During which prenatal period do the major organs begin to form?", "Germinal", "Embryonic", "Fetal", "Infancy", 1, "It's the most critical period for structural development.", "Organogenesis occurs during the embryonic period (weeks 3-8)."],
+      ["Prenatal", "Any environmental agent that causes damage during the prenatal period is a:", "Teratogen", "Mutagen", "Carcinogen", "Pathogen", 0, "Alcohol is a common example.", "Teratogens include drugs, viruses, and chemicals that cross the placenta and harm the embryo/fetus."],
+      ["Prenatal", "The age of viability (when a fetus can survive outside the womb) is roughly:", "12-14 weeks", "22-26 weeks", "30-32 weeks", "36-38 weeks", 1, "It is in the late second trimester.", "With modern medicine, fetuses born between 22 and 26 weeks have a chance of survival."],
+      ["Prenatal", "What structure connects the fetus to the placenta?", "Amniotic sac", "Uterine wall", "Umbilical cord", "Fallopian tube", 2, "It gets cut at birth.", "The umbilical cord transports nutrients and oxygen to the fetus and removes waste."],
+      ["Genetics", "When a trait is controlled by multiple genes, it is called:", "Polygenic", "Dominant", "Recessive", "Incomplete dominance", 0, "Poly means many.", "Polygenic inheritance (like height or skin color) involves many interacting genes."],
+      ["Prenatal", "Fetal Alcohol Syndrome (FAS) is primarily characterized by:", "Extra limbs", "Facial abnormalities and cognitive deficits", "Blindness", "Large birth weight", 1, "It impacts the brain and facial structure.", "FAS is marked by distinct facial features, slow growth, and central nervous system damage."],
+      ["Genetics", "If both parents carry a single recessive gene for a disorder, what is the chance their child will have the disorder?", "0%", "25%", "50%", "100%", 1, "Think of a Punnett square (1 in 4).", "There is a 25% chance of inheriting two recessive alleles (one from each parent)."],
+      ["Prenatal", "The cephalocaudal trend of development means that growth proceeds from:", "Center to outward", "Head to tail", "Simple to complex", "Bottom to top", 1, "Cephalo = head, caudal = tail.", "Development occurs first in the head region and proceeds downward."],
+      ["Prenatal", "The proximodistal trend means growth proceeds from:", "Head to toe", "Center of the body outward", "Limbs to torso", "Complex to simple", 1, "Proximo = near, distal = far.", "Growth starts at the center of the body (trunk) and moves toward the extremities (hands/fingers)."],
+      ["Prenatal", "Which prenatal test involves extracting fluid from the sac surrounding the fetus?", "Ultrasound", "Chorionic villus sampling", "Amniocentesis", "Maternal blood test", 2, "It tests the amniotic fluid.", "Amniocentesis involves inserting a needle to extract amniotic fluid to check for genetic disorders."],
+
+      // BIRTH & NEWBORN (46-55)
+      ["Birth", "The longest stage of labor is typically:", "Stage 1 (Dilation and effacement)", "Stage 2 (Delivery of baby)", "Stage 3 (Delivery of placenta)", "Stage 4 (Recovery)", 0, "It involves opening the cervix.", "Stage 1 is the longest, often lasting 12-14 hours for first births, as the cervix dilates."],
+      ["Birth", "The Apgar scale is used to:", "Measure prenatal growth", "Assess the newborn's physical condition immediately after birth", "Test for genetic abnormalities", "Measure mother's pain levels", 1, "It's done at 1 and 5 minutes.", "The Apgar scale assesses Appearance, Pulse, Grimace, Activity, and Respiration."],
+      ["Newborn", "A newborn's automatic response to a stroke on the cheek is the:", "Moro reflex", "Grasping reflex", "Rooting reflex", "Babinski reflex", 2, "It helps them find food.", "The rooting reflex causes the infant to turn its head and open its mouth to find a nipple."],
+      ["Newborn", "When a baby is startled and throws its arms out and brings them back in, this is the:", "Rooting reflex", "Moro reflex", "Stepping reflex", "Sucking reflex", 1, "Also known as the startle reflex.", "The Moro reflex is a primitive startle response."],
+      ["Newborn", "Stroking the bottom of a baby's foot causes the toes to fan out. This is the:", "Babinski reflex", "Plantar reflex", "Palmar reflex", "Tonic neck reflex", 0, "Named after a neurologist.", "The Babinski reflex is normal in infants but indicates neurological issues in adults."],
+      ["Newborn", "Which sense is the LEAST developed at birth?", "Hearing", "Smell", "Taste", "Vision", 3, "It's dark in the womb.", "Newborns have very poor visual acuity, usually seeing clearly only 8-12 inches away."],
+      ["Birth", "A baby born prior to 37 weeks of gestation is considered:", "Postmature", "Premature (preterm)", "Low birth weight only", "Small for gestational age", 1, "They arrive early.", "Preterm infants are born before the end of the 37th week of pregnancy."],
+      ["Newborn", "What is the typical sleep pattern of a newborn?", "8 hours straight at night", "16-18 hours a day in short segments", "10 hours a day mostly in the afternoon", "Only sleeps when held", 1, "They sleep a lot, but not constantly.", "Newborns sleep 16 to 18 hours daily, waking frequently to feed."],
+      ["Newborn", "The fine, soft hair that covers a fetus/newborn is called:", "Vernix", "Lanugo", "Fontanel", "Meconium", 1, "It usually falls out shortly after birth.", "Lanugo helps the vernix stick to the skin in the womb to protect it."],
+      ["Newborn", "The cheesy, white substance protecting the newborn's skin is:", "Lanugo", "Vernix caseosa", "Amniotic fluid", "Colostrum", 1, "It prevents wrinkling in the fluid.", "Vernix protects the fetal skin from the amniotic fluid and helps with lubrication during birth."],
+
+      // INFANCY (56-85)
+      ["Infancy Physical", "By their first birthday, a typical infant's birth weight has:", "Doubled", "Tripled", "Quadrupled", "Remained the same", 1, "Growth is very rapid in year one.", "Infants typically triple their birth weight by 12 months."],
+      ["Infancy Physical", "The process where unused neural connections are eliminated is called:", "Myelination", "Synaptic pruning", "Neurogenesis", "Brain plasticity", 1, "Think of trimming a bush.", "Synaptic pruning removes inefficient pathways to make the brain function more efficiently."],
+      ["Infancy Physical", "Myelination refers to:", "The birth of new neurons", "Coating axons with a fatty substance to speed transmission", "The death of brain cells", "The specialization of the two hemispheres", 1, "It acts like insulation on a wire.", "Myelin is a fatty sheath that improves the efficiency of neural signaling."],
+      ["Infancy Physical", "Which is a gross motor skill?", "Crawling", "Grasping a Cheerio", "Transferring a toy from hand to hand", "Drawing a line", 0, "It uses large muscles.", "Gross motor skills involve large body movements like crawling, walking, and jumping."],
+      ["Infancy Physical", "The pincer grasp typically develops around:", "2 months", "5 months", "9-12 months", "18 months", 2, "It requires coordination of thumb and index finger.", "The pincer grasp emerges near the end of the first year, replacing the clumsy ulnar grasp."],
+      ["Infancy Cognitive", "According to Piaget, infants lack object permanence until about:", "2 months", "4 months", "8-12 months", "24 months", 2, "Out of sight is out of mind for young infants.", "Infants begin to actively search for hidden objects around 8 months of age."],
+      ["Infancy Cognitive", "What is object permanence?", "Believing objects have feelings", "Knowing an object exists even when hidden", "Throwing objects repeatedly", "Putting objects in the mouth", 1, "It's the concept of 'permanent' existence.", "It's the understanding that objects continue to exist even when they cannot be seen."],
+      ["Infancy Cognitive", "Infant babbling (e.g., 'ba-ba-ba') usually begins around:", "1 month", "3 months", "6 months", "12 months", 2, "It follows cooing.", "Babbling involves repeating consonant-vowel combinations and starts around 6 months."],
+      ["Infancy Cognitive", "When an infant uses a single word to express a complete thought (e.g., 'Juice!' for 'I want juice'), it is called:", "Telegraphic speech", "Holophrase", "Overextension", "Babbling", 1, "Holo = whole, phrase.", "A holophrase is a single word functioning as a whole sentence."],
+      ["Infancy Cognitive", "Telegraphic speech typically consists of:", "Single vowels", "Two-word sentences like 'Go car'", "Complex grammar", "Crying to communicate", 1, "It omits non-essential words like a telegram.", "Telegraphic speech starts around 18-24 months and focuses on high-meaning words."],
+      ["Infancy Cognitive", "Overextension in early language occurs when:", "A child uses a word too broadly (e.g., calling all men 'Daddy')", "A child uses a word too narrowly", "A child speaks too loudly", "A child creates new words", 0, "They extend the meaning too far.", "Overextension happens when a specific word is applied to a broader category."],
+      ["Infancy Social", "Stranger anxiety typically peaks around:", "2 months", "4 months", "8-12 months", "2 years", 2, "It correlates with object permanence.", "Infants become wary of strangers as they form specific attachments, peaking near 1 year."],
+      ["Infancy Social", "In the Strange Situation, a baby who is upset when mother leaves but angry/resistant when she returns has an:", "Secure attachment", "Avoidant attachment", "Ambivalent/Resistant attachment", "Disorganized attachment", 2, "They show mixed feelings.", "Resistant infants seek closeness but are angry and hard to comfort upon reunion."],
+      ["Infancy Social", "A baby who explores freely, is slightly upset when mom leaves, and easily comforted upon return shows:", "Secure attachment", "Avoidant attachment", "Resistant attachment", "Disorganized attachment", 0, "This is the most common and healthy pattern.", "Securely attached infants use the caregiver as a secure base."],
+      ["Infancy Social", "Temperament refers to:", "Learned behaviors", "Early-appearing, biologically-based differences in reactivity and self-regulation", "Attachment style", "Cognitive intelligence", 1, "It's the 'how' of behavior.", "Temperament is the innate, relatively stable behavioral style and emotional response of a child."],
+      ["Infancy Social", "Thomas and Chess classified the majority of babies as:", "Difficult", "Slow-to-warm-up", "Easy", "Unclassified", 2, "Most babies adapt relatively well.", "About 40% of their sample were classified as 'Easy' babies."],
+      ["Infancy Social", "Social referencing is when an infant:", "Looks at a parent's facial expression to decide how to react to a new situation", "Points at objects", "Plays peek-a-boo", "Babbles to other infants", 0, "They 'reference' someone else's reaction.", "Infants use trusted adults' emotional cues to evaluate uncertain situations."],
+      ["Infancy Social", "Erikson's second stage (toddlerhood) is:", "Trust vs. Mistrust", "Autonomy vs. Shame and Doubt", "Initiative vs. Guilt", "Industry vs. Inferiority", 1, "They want to do things themselves.", "Toddlers strive for autonomy (independence) and feel shame if overly restricted."],
+      ["Infancy Physical", "The condition where an infant fails to grow due to a lack of affection/interaction is:", "SIDS", "Non-organic failure to thrive", "Marasmus", "Kwashiorkor", 1, "It's not caused by physical illness.", "Emotional deprivation can severely stunt a child's physical growth."],
+      ["Infancy Physical", "SIDS (Sudden Infant Death Syndrome) risk is significantly reduced by:", "Having babies sleep on their stomachs", "Having babies sleep on their backs", "Using heavy blankets", "Co-sleeping", 1, "Remember the 'Back to Sleep' campaign.", "Putting infants to sleep on their backs prevents airway blockage."],
+      ["Infancy Cognitive", "Infantile amnesia refers to the inability to:", "Learn languages easily", "Remember events from before age 3 or 4", "Recognize faces", "Form attachments", 1, "Adults rarely remember being a baby.", "Brain development in the hippocampus is required for long-term episodic memory storage."],
+      ["Infancy Cognitive", "According to Piaget, 'circular reactions' are:", "Drawing circles", "Stumbling upon a new experience caused by the baby's own motor activity and repeating it", "Looking around a room", "Interacting with peers", 1, "It's a repeating loop of action.", "Babies repeat actions (like splashing water) to understand cause and effect."],
+      ["Infancy Social", "When a child says 'No!' to everything, they are likely expressing:", "Autonomy", "Mistrust", "Insecure attachment", "Concrete thinking", 0, "It's a sign of developing independence.", "Saying 'no' is a normal part of the Autonomy vs. Shame and Doubt stage."],
+      ["Infancy Social", "Goodness of fit refers to:", "How well clothes fit a toddler", "The match between a child's temperament and their environment/parenting", "The attachment bond", "Cognitive readiness", 1, "It's about compatibility.", "Favorable development depends on parenting practices adapting to the child's temperament."],
+      ["Infancy Social", "Self-recognition (recognizing oneself in a mirror) typically emerges around:", "3 months", "6 months", "18-24 months", "3 years", 2, "Tested with the 'rouge test'.", "By 18-24 months, toddlers touch their own nose if they see a red mark in the mirror."],
+      ["Infancy Social", "Empathy in toddlers is often demonstrated by:", "Ignoring crying children", "Offering their own favorite toy to someone who is sad", "Laughing at accidents", "Hiding", 1, "They offer what comforts them.", "Toddlers show early empathy but do so egocentrically, offering their own comfort objects."],
+      ["Infancy Cognitive", "The vocabulary spurt, a period of rapid word learning, happens roughly at:", "6 months", "12 months", "18-24 months", "4 years", 2, "It coincides with telegraphic speech.", "Children go from adding 1-3 words a week to 1-2 words a day."],
+      ["Infancy Cognitive", "Underextension occurs when a child:", "Uses a word too broadly", "Uses a word too restrictively (e.g., only their bear is a 'bear')", "Cannot pronounce words", "Stutters", 1, "They limit the definition.", "Applying a general word only to a specific object."],
+      ["Infancy Cognitive", "Child-directed speech (motherese) is characterized by:", "Low pitch and fast speed", "High pitch, exaggerated expression, and short sentences", "Monotone delivery", "Complex vocabulary", 1, "It grabs the baby's attention.", "Infants prefer this exaggerated speech, which helps them process language."],
+      ["Infancy Physical", "Brain weight reaches about what percentage of its adult weight by age 2?", "25%", "50%", "75%", "100%", 2, "It grows remarkably fast.", "The brain is about 75% of its adult weight by age 2, despite the body being much smaller."],
+
+      // EARLY CHILDHOOD (86-115)
+      ["Early Childhood Physical", "During early childhood, body proportions shift so that children:", "Have larger heads relative to their bodies", "Lose their 'baby fat' and become more streamlined", "Develop shorter legs", "Grow rapidly in width rather than height", 1, "They look more like little adults.", "Children thin out as their trunks lengthen and body fat declines."],
+      ["Early Childhood Physical", "By age 5, a child's brain is approximately what percent of its adult volume?", "50%", "75%", "90%", "100%", 2, "It's nearly full size.", "Rapid development in the cerebral cortex brings the brain to 90% of adult size."],
+      ["Early Childhood Physical", "The corpus callosum's main function, which matures in early childhood, is to:", "Regulate emotion", "Connect the two brain hemispheres", "Control breathing", "Process vision", 1, "It acts as a bridge.", "The corpus callosum supports smooth coordination between the left and right sides of the body."],
+      ["Early Childhood Physical", "What gross motor skill is typical for a 3-year-old?", "Jumping and hopping with great balance", "Riding a bicycle with no training wheels", "Pedaling a tricycle", "Catching a small ball with one hand", 2, "They have three wheels for balance.", "3-year-olds can pedal a tricycle and walk up stairs with alternating feet."],
+      ["Early Childhood Physical", "Enuresis refers to:", "Loss of appetite", "Repeated bed-wetting", "Fecal incontinence", "Sleep terrors", 1, "It involves urine.", "Enuresis is repeated voiding of urine into bed or clothes, commonly at night."],
+      ["Early Childhood Cog", "In Piaget's preoperational stage, children struggle with 'conservation', which is:", "The ability to save money", "Understanding that physical properties remain the same even if appearance changes", "Focusing on multiple aspects of a situation", "Understanding death", 1, "Think of pouring water into a taller glass.", "Preoperational children think the taller glass has 'more' water."],
+      ["Early Childhood Cog", "Centration is the tendency to:", "Focus on only one aspect of a situation while ignoring others", "Center objects in a drawing", "Balance easily", "Think logically", 0, "They 'center' their attention.", "This leads to failing conservation tasks, as they only focus on height, not width."],
+      ["Early Childhood Cog", "Animism is the belief that:", "Animals are humans", "Inanimate objects have lifelike qualities and intentions", "Dreams are real", "All animals are friendly", 1, "They might say 'The sun is angry.'", "Preoperational children attribute thoughts and feelings to non-living things."],
+      ["Early Childhood Cog", "Vygotsky emphasized that children use 'private speech' to:", "Talk to imaginary friends", "Self-regulate and guide their own behavior", "Hide secrets from parents", "Practice pronunciation", 1, "It's talking to oneself.", "Private speech is seen as the foundation for higher cognitive processes."],
+      ["Early Childhood Cog", "Theory of Mind, which usually develops around age 4, is the understanding that:", "Others have their own thoughts, beliefs, and desires", "The brain controls the body", "Magic is not real", "Objects are permanent", 0, "It's tested with the 'False Belief Task'.", "Children realize that someone else can hold a belief that is false."],
+      ["Early Childhood Cog", "Fast-mapping allows children to:", "Run quickly through mazes", "Learn a new word after only a brief encounter", "Draw maps of their house", "Read words instantly", 1, "They 'map' the word to a concept.", "This explains the massive vocabulary spurt in early childhood."],
+      ["Early Childhood Cog", "Overregularization is a grammatical error where children:", "Speak in single words", "Apply grammar rules to irregular exceptions (e.g., 'I runned' instead of 'ran')", "Stutter frequently", "Mix up two languages", 1, "They apply the rule too regularly.", "Saying 'gooses' instead of 'geese' shows they are actively learning grammar rules."],
+      ["Early Childhood Cog", "Which program is designed to provide early childhood education to low-income children in the US?", "No Child Left Behind", "Head Start", "Common Core", "Montessori", 1, "It gives them a 'head start' in life.", "Project Head Start provides comprehensive education, health, and nutrition services."],
+      ["Early Childhood Social", "Erikson's stage for early childhood (ages 3-6) is:", "Trust vs. Mistrust", "Autonomy vs. Shame", "Initiative vs. Guilt", "Industry vs. Inferiority", 2, "They want to start new projects.", "Children in this stage assert power over their environment through directed play."],
+      ["Early Childhood Social", "Self-concept in early childhood is usually based on:", "Psychological traits", "Abstract ideologies", "Observable characteristics (name, possessions, typical behavior)", "Comparisons to peers", 2, "They are very concrete.", "A 4-year-old describes themselves by saying 'I have a red shirt and I run fast.'"],
+      ["Early Childhood Social", "Gender identity is:", "The biological sex assigned at birth", "A person's internal sense of being male, female, or another gender", "The societal roles expected of men and women", "Who a person is attracted to", 1, "It's how you identify.", "Gender identity usually forms solidly around age 2 to 3."],
+      ["Early Childhood Social", "Diana Baumrind's parenting style that is high in both warmth and control is:", "Authoritarian", "Permissive", "Authoritative", "Uninvolved", 2, "It's the most balanced style.", "Authoritative parents are warm but set firm, reasonable limits."],
+      ["Early Childhood Social", "Authoritarian parents tend to be:", "Warm and lax", "Cold and demanding (strict obedience)", "Warm and demanding", "Cold and lax", 1, "They say 'Because I said so.'", "Authoritarian parenting involves high control and low warmth."],
+      ["Early Childhood Social", "Children of permissive parents often tend to be:", "High achieving and self-reliant", "Anxious and withdrawn", "Impulsive, disobedient, and lacking self-control", "Highly competitive", 2, "They don't have many rules.", "Because they lack boundaries, they struggle with self-regulation."],
+      ["Early Childhood Social", "Mildred Parten's 'Parallel Play' occurs when children:", "Play completely alone", "Watch others play", "Play near each other with similar materials but do not interact", "Play together to build one tower", 2, "They are parallel, like train tracks.", "Children play side-by-side without influencing each other's behavior."],
+      ["Early Childhood Social", "Associative play involves:", "Working together for a shared goal", "Exchanging toys and talking, but not working toward a common goal", "Watching others", "Playing a board game with rules", 1, "They associate, but don't cooperate.", "Children share materials and talk, but their play is still independent."],
+      ["Early Childhood Physical", "Which of the following is a common nutritional problem in early childhood in developed nations?", "Marasmus", "Insufficient calcium", "Too much sugar and fat (obesity risk)", "Scurvy", 2, "Fast food is a factor.", "Overconsumption of calorie-dense, low-nutrient foods leads to childhood obesity."],
+      ["Early Childhood Cog", "Egocentrism in early childhood means the child:", "Is selfish and mean", "Cannot distinguish their own perspective from someone else's", "Has high self-esteem", "Wants everything for themselves", 1, "They think you see exactly what they see.", "Piaget's Three Mountains task demonstrated this cognitive limitation."],
+      ["Early Childhood Cog", "Magical thinking in early childhood helps children:", "Learn math", "Explain events they don't logically understand", "Read better", "Develop fine motor skills", 1, "They blame fairies or monsters.", "Since they lack logical cause-and-effect reasoning, they use magic to explain the world."],
+      ["Early Childhood Social", "Prosocial behavior refers to:", "Aggressive acts", "Actions that benefit others without expected reward (sharing, helping)", "Playing alone", "Following rules to get a sticker", 1, "It is 'pro' society.", "Altruism, sharing, and comforting are forms of prosocial behavior."],
+      ["Early Childhood Social", "Instrumental aggression is used to:", "Intentionally hurt someone's feelings", "Obtain an object, space, or privilege", "Defend oneself", "Exclude someone from a group", 1, "It's used as an instrument to get a goal.", "A child pushing another to get a toy is demonstrating instrumental aggression."],
+      ["Early Childhood Social", "Relational aggression is intended to:", "Harm someone physically", "Take a toy away", "Harm someone's peer relationships or social standing", "Break an object", 2, "It targets 'relationships'.", "Gossiping or social exclusion are examples of relational aggression."],
+      ["Early Childhood Physical", "What is the leading cause of death in early childhood in industrialized nations?", "Cancer", "Infectious disease", "Unintentional injuries", "Genetic disorders", 2, "They are very active but lack judgment.", "Accidents like drownings, car crashes, and fires are the leading cause of mortality."],
+      ["Early Childhood Cog", "Vygotsky's view of play was that it:", "Is a waste of time", "Creates a ZPD, advancing children's cognitive and social skills", "Only happens in isolation", "Is strictly for motor development", 1, "Play is the 'work' of childhood.", "Make-believe play allows children to practice self-regulation and social rules."],
+      ["Early Childhood Social", "Gender typing refers to:", "Sorting chromosomes", "Any association of objects, activities, or roles with biological sex that conforms to stereotypes", "Learning to read", "Developing a sex identity", 1, "Boys get trucks, girls get dolls.", "It is the process of acquiring gender roles according to cultural expectations."],
+
+      // MIDDLE CHILDHOOD (116-145)
+      ["Middle Childhood Physical", "Physical growth in middle childhood is generally:", "Extremely rapid", "Slow and steady", "Characterized by growth spurts every month", "Non-existent", 1, "It's the calm before the puberty storm.", "Children grow about 2-3 inches and gain 5-7 pounds a year slowly."],
+      ["Middle Childhood Physical", "Which of the following is a major health issue rising in middle childhood?", "SIDS", "Obesity", "Marasmus", "Alzheimer's", 1, "It relates to diet and screen time.", "Childhood obesity rates have risen sharply due to sedentary lifestyles and diet."],
+      ["Middle Childhood Physical", "Myopia, which becomes more common in middle childhood, is:", "Farsightedness", "Nearsightedness", "Asthma", "Bedwetting", 1, "You can't see far away.", "Nearsightedness increases due to reading, screens, and less outdoor time."],
+      ["Middle Childhood Cog", "Piaget's stage for middle childhood (ages 7-11) is:", "Preoperational", "Formal Operational", "Concrete Operational", "Sensorimotor", 2, "They need tangible things.", "Children can now reason logically about concrete, tangible information."],
+      ["Middle Childhood Cog", "A hallmark of concrete operational thought is the mastery of:", "Abstract logic", "Conservation", "Hypothetico-deductive reasoning", "Animism", 1, "They know pouring water doesn't change the amount.", "Conservation proves they understand reversibility and decentration."],
+      ["Middle Childhood Cog", "Seriation is the ability to:", "Understand series of numbers only", "Order items along a quantitative dimension (like length or weight)", "Think about thinking", "Remember sequences of events", 1, "Think of lining up sticks by height.", "It's a crucial logical skill gained in middle childhood."],
+      ["Middle Childhood Cog", "Transitive inference is the ability to:", "Remember past events", "Seriate mentally (If A > B and B > C, then A > C)", "Draw accurately", "Speak two languages", 1, "It's a form of mental logic.", "It involves inferring the relationship between two objects by knowing their relationship to a third."],
+      ["Middle Childhood Cog", "Which condition is characterized by severe inattention, impulsivity, and hyperactivity?", "Autism", "Dyslexia", "ADHD", "Down Syndrome", 2, "It affects focus in school.", "Attention-Deficit/Hyperactivity Disorder involves neurotransmitter imbalances affecting executive function."],
+      ["Middle Childhood Cog", "Dyslexia is a learning disability primarily affecting:", "Math skills", "Reading and word recognition", "Fine motor skills", "Social skills", 1, "It involves mixing up letters.", "It is a deficit in phonological processing that makes reading difficult."],
+      ["Middle Childhood Cog", "Sternberg's Triarchic Theory of Intelligence proposes which three types of intelligence?", "Verbal, Math, Spatial", "Analytical, Creative, Practical", "Fluid, Crystallized, General", "Emotional, Social, Cognitive", 1, "Think of 'book smarts', 'creativity', and 'street smarts'.", "Sternberg argued intelligence is more than just traditional IQ."],
+      ["Middle Childhood Cog", "Howard Gardner is known for his theory of:", "Emotional Intelligence", "General Intelligence (g)", "Multiple Intelligences", "Operant Conditioning", 2, "He proposed 8 different types.", "Gardner argued for distinct intelligences like musical, bodily-kinesthetic, and interpersonal."],
+      ["Middle Childhood Cog", "The Flynn Effect refers to:", "The decline of memory with age", "The steady increase in IQ scores from one generation to the next", "The tendency to forget childhood memories", "The impact of praise on performance", 1, "Scores keep going up.", "Improved nutrition, education, and technology have led to generational IQ increases."],
+      ["Middle Childhood Social", "Erikson's stage for middle childhood is:", "Initiative vs. Guilt", "Autonomy vs. Shame", "Industry vs. Inferiority", "Identity vs. Role Confusion", 2, "They want to be productive.", "Children want to develop a sense of competence at useful skills (industry)."],
+      ["Middle Childhood Social", "In middle childhood, self-concept shifts from observable traits to:", "Imaginary traits", "Psychological traits and peer comparisons", "Career goals", "Physical abilities only", 1, "They start comparing themselves to others.", "They say things like 'I am usually friendly, but I'm not as good at math as Sarah.'"],
+      ["Middle Childhood Social", "Self-esteem in middle childhood generally:", "Drops initially as they compare themselves, then rises", "Remains constantly high", "Drops to zero", "Only depends on parents", 0, "Social comparison creates a reality check.", "As children receive school feedback and compare to peers, self-esteem adjusts to a realistic level."],
+      ["Middle Childhood Social", "Carol Dweck's concept of a 'growth mindset' involves believing that:", "Intelligence is fixed at birth", "Abilities can be improved through effort and practice", "Only smart people succeed", "Failure means you are unintelligent", 1, "The brain is like a muscle.", "A growth mindset leads to resilience and better academic outcomes."],
+      ["Middle Childhood Social", "Learned helplessness occurs when a child:", "Attributes failure to a lack of ability and stops trying", "Learns to help others", "Attributes success to hard work", "Asks for help constantly", 0, "They give up.", "They believe they cannot control the outcome, so effort is pointless."],
+      ["Middle Childhood Social", "Peer groups in middle childhood are usually organized around:", "Proximity and similarity (gender/interests)", "Random assignment", "Opposite genders", "Adult supervision", 0, "Birds of a feather flock together.", "Children form groups with those who live near them and share similar traits."],
+      ["Middle Childhood Social", "A 'rejected' child in sociometric status is one who gets:", "Many positive votes", "Many negative votes", "Both positive and negative votes", "No votes", 1, "Peers actively dislike them.", "Rejected children are often aggressive or socially awkward."],
+      ["Middle Childhood Social", "A 'neglected' child in sociometric status gets:", "Many positive votes", "Many negative votes", "Few votes of any kind (ignored)", "Both positive and negative votes", 2, "They fly under the radar.", "Neglected children are usually well-adjusted but prefer to play alone or go unnoticed."],
+      ["Middle Childhood Social", "Bullying (peer victimization) most often targets children who are:", "Popular and aggressive", "Passive, physically weak, or socially withdrawn", "Teachers' pets", "Athletic", 1, "They are seen as easy targets.", "Bullies often target children who are unlikely to retaliate."],
+      ["Middle Childhood Social", "Coregulation is a parenting process where:", "Parents control every action", "Children make all decisions", "Parents exercise general oversight while children make moment-by-moment decisions", "Parents are uninvolved", 2, "It's a shared responsibility.", "It prepares children for the independence of adolescence."],
+      ["Middle Childhood Social", "Which family structure involves parents, children, and other relatives living together?", "Nuclear family", "Extended family", "Blended family", "Single-parent family", 1, "It extends beyond the immediate unit.", "Extended families provide strong support networks, especially in many minority cultures."],
+      ["Middle Childhood Social", "Following a divorce, children in middle childhood typically:", "Experience no stress", "Blame themselves and show anxiety/anger", "Immediately accept the new situation", "Move out", 1, "It disrupts their stability.", "They often experience a drop in academic performance and behavioral issues temporarily."],
+      ["Middle Childhood Social", "A blended family is formed when:", "Grandparents move in", "Parents divorce and at least one parent remarries", "A family adopts a child", "Parents decide to homeschool", 1, "It blends two families.", "Also called a reconstituted family, it involves step-parents and sometimes step-siblings."],
+      ["Middle Childhood Cog", "Bilingual education models that teach children in their native language while gradually introducing English are called:", "Immersion programs", "Dual-language / Transitional programs", "Segregation programs", "Phonics programs", 1, "It transitions them.", "This approach prevents children from falling behind in academic subjects while learning English."],
+      ["Middle Childhood Cog", "Phonics approaches to reading emphasize:", "Reading whole words on sight", "Translating written symbols into sounds", "Reading only pictures", "Memorizing whole stories", 1, "Sounding it out.", "Phonics teaches the basic rules for translating letters into sounds."],
+      ["Middle Childhood Cog", "The Whole-Language approach emphasizes:", "Exposure to complete texts to keep reading meaningful", "Sounding out every letter", "Memorizing lists of words", "Using flashcards only", 0, "It focuses on the 'whole' meaning.", "It argues reading should parallel natural language learning."],
+      ["Middle Childhood Physical", "Asthma is characterized by:", "High blood sugar", "Chronic inflammation of the airways", "Poor vision", "Bone fractures", 1, "It causes wheezing and coughing.", "It is the most common chronic disease in US children."],
+      ["Middle Childhood Cog", "IQ tests in schools are primarily designed to predict:", "Creative ability", "Emotional intelligence", "Academic achievement", "Physical prowess", 2, "They were made for the classroom.", "IQ tests correlate strongly with school performance."],
+
+      // ADOLESCENCE (146-175)
+      ["Adolescence Physical", "The biological changes leading to adult size and sexual maturity are called:", "Menarche", "Puberty", "Senescence", "Menopause", 1, "It marks the start of adolescence.", "Puberty involves massive hormonal and physical transformations."],
+      ["Adolescence Physical", "The primary female sex hormone is:", "Testosterone", "Androgen", "Estrogen", "Adrenaline", 2, "It triggers breast development.", "Estrogen drives the maturation of female reproductive organs."],
+      ["Adolescence Physical", "Primary sex characteristics involve:", "Breast development", "Facial hair", "Deepening of the voice", "The reproductive organs (ovaries, uterus, testes)", 3, "They are 'primary' for reproduction.", "These organs are directly necessary for reproduction."],
+      ["Adolescence Physical", "Secondary sex characteristics involve:", "Sperm production", "Menstruation", "Visible signs of maturity like breast growth and pubic hair", "Uterine development", 2, "They are visible on the outside.", "They signal physical maturity but do not directly involve reproduction."],
+      ["Adolescence Physical", "The first occurrence of menstruation is called:", "Spermarche", "Menarche", "Puberty", "Amenorrhea", 1, "Men = month, arche = beginning.", "Menarche typically occurs around age 12.5 in the US."],
+      ["Adolescence Physical", "Early-maturing girls tend to experience:", "Higher popularity and self-esteem", "Fewer psychological issues", "More body image issues, depression, and early sexual activity", "Later onset of adulthood", 2, "They stand out from peers.", "They often feel out of place and may attract attention from older teens."],
+      ["Adolescence Physical", "During adolescence, which part of the brain matures LAST?", "Amygdala (emotion)", "Prefrontal cortex (planning/judgment)", "Cerebellum (movement)", "Hypothalamus (hormones)", 1, "It explains teenage impulsivity.", "The prefrontal cortex isn't fully developed until the mid-20s."],
+      ["Adolescence Physical", "The teenage brain's heightened sensitivity to dopamine leads to:", "Extreme fatigue", "Increased reward-seeking and risk-taking", "Perfect decision making", "Loss of appetite", 1, "Rewards feel better than ever.", "This is why teens are highly susceptible to peer influence and risky thrills."],
+      ["Adolescence Physical", "A common eating disorder involving extreme food restriction and distorted body image is:", "Bulimia nervosa", "Binge-eating disorder", "Anorexia nervosa", "Pica", 2, "It involves starvation.", "Anorexia is characterized by an intense fear of gaining weight."],
+      ["Adolescence Physical", "Bulimia nervosa is characterized by:", "Only restricting food", "Binge eating followed by compensatory behaviors (purging, fasting)", "Eating non-food items", "Extreme obesity", 1, "It's a cycle of binge and purge.", "Bulimics usually maintain a normal weight, unlike anorexics."],
+      ["Adolescence Cog", "Piaget's final cognitive stage, emerging in adolescence, is:", "Concrete Operational", "Formal Operational", "Post-formal thought", "Sensorimotor", 1, "It deals with abstractions.", "Adolescents gain the capacity for abstract, systematic, scientific thinking."],
+      ["Adolescence Cog", "Hypothetico-deductive reasoning allows teens to:", "Only solve problems with physical objects", "Form a hypothesis and systematically deduce the best path to solve a problem", "Conserve liquids", "Draw realistic pictures", 1, "It is scientific problem solving.", "They can isolate variables to test outcomes, like in the pendulum problem."],
+      ["Adolescence Cog", "Propositional thought is the ability to:", "Evaluate the logic of verbal statements without referring to real-world circumstances", "Make propositions to peers", "Only think about concrete things", "Remember past propositions", 0, "Logic applies strictly to the rules given.", "They can understand 'If A is true, and B is true, then C must be true' even if absurd."],
+      ["Adolescence Cog", "The 'imaginary audience' is an adolescent's belief that:", "They are the center of everyone's attention and concern", "They need to act on stage", "No one cares about them", "Their friends are imaginary", 0, "They think everyone sees their pimple.", "It stems from adolescent egocentrism and causes extreme self-consciousness."],
+      ["Adolescence Cog", "The 'personal fable' leads adolescents to believe:", "They are ordinary", "They are unique, special, and invulnerable to harm", "Fairy tales are true", "They will not succeed", 1, "It leads to risky behavior.", "They think 'That bad thing won't happen to ME.'"],
+      ["Adolescence Social", "Erikson's psychosocial conflict of adolescence is:", "Intimacy vs. Isolation", "Identity vs. Role Confusion", "Industry vs. Inferiority", "Generativity vs. Stagnation", 1, "The famous 'Who am I?' question.", "Teens must formulate a solid sense of self, values, and direction."],
+      ["Adolescence Social", "According to James Marcia, an adolescent who has NOT explored options and has NOT made a commitment is in:", "Identity Foreclosure", "Identity Diffusion", "Identity Moratorium", "Identity Achievement", 1, "They are diffused, or scattered.", "Diffusion is characterized by apathy and lack of direction."],
+      ["Adolescence Social", "An adolescent who adopts their parents' political views without ever questioning them is in:", "Identity Foreclosure", "Identity Diffusion", "Identity Moratorium", "Identity Achievement", 0, "They closed the door early.", "Foreclosure involves commitment without exploration."],
+      ["Adolescence Social", "An adolescent actively exploring different religions but hasn't chosen one yet is in:", "Identity Foreclosure", "Identity Diffusion", "Identity Moratorium", "Identity Achievement", 2, "It's a holding pattern.", "Moratorium is a state of active exploration (a delay of commitment)."],
+      ["Adolescence Social", "An adolescent who explored many careers and confidently decided to be a nurse has reached:", "Identity Foreclosure", "Identity Diffusion", "Identity Moratorium", "Identity Achievement", 3, "They achieved their goal.", "Achievement involves commitment after a period of exploration."],
+      ["Adolescence Social", "Kohlberg's Preconventional level of morality bases decisions on:", "Internalized abstract principles", "Rewards and punishments", "Social norms and laws", "Religious texts", 1, "It's like a young child's reasoning.", "Right and wrong are determined by whether you get in trouble or get a reward."],
+      ["Adolescence Social", "Kohlberg's Conventional level of morality bases decisions on:", "Personal gain", "Universal ethical principles", "Maintaining social order, rules, and expectations", "Fear of punishment", 2, "It's about being a 'good boy' or obeying the law.", "Most adolescents and adults reason at this level."],
+      ["Adolescence Social", "Kohlberg's Postconventional level of morality focuses on:", "Obeying the law strictly", "Universal ethical principles and human rights", "Avoiding jail time", "Pleasing friends", 1, "Rules can be broken for a higher cause.", "Individuals base morality on abstract principles that may supersede laws (like Heinz stealing the drug)."],
+      ["Adolescence Social", "During adolescence, conflict with parents typically:", "Disappears completely", "Increases mildly, mostly over everyday matters (chores, curfews)", "Increases severely, leading to estrangement", "Stays exactly the same as childhood", 1, "It's a push for autonomy.", "While conflict rises, it is usually about mundane issues, not core values."],
+      ["Adolescence Social", "A 'clique' is a:", "Large, loosely organized group based on reputation (e.g., 'jocks')", "Small group of 5-7 friends who resemble one another", "Club formed by teachers", "Group of siblings", 1, "It's your tight-knit friend group.", "Cliques provide the main context for everyday social interaction."],
+      ["Adolescence Social", "A 'crowd' is a:", "Small group of 5-7 friends", "Large, loosely organized group based on reputation and stereotypes", "Family gathering", "Classroom setting", 1, "Examples: Brains, Jocks, Burnouts.", "Crowds offer a sense of identity within the larger school structure."],
+      ["Adolescence Social", "Peer pressure in adolescence is most powerful regarding:", "Core moral values", "Career choices", "Day-to-day behaviors like dress, grooming, and pro-social activities", "Religious beliefs", 2, "Peers dictate style, parents dictate values.", "Parents still have more influence on major life decisions."],
+      ["Adolescence Social", "The most common psychological problem in adolescence is:", "Schizophrenia", "Bipolar disorder", "Depression", "OCD", 2, "It affects girls twice as often as boys.", "Depression rates rise sharply during adolescence due to biological and social stressors."],
+      ["Adolescence Social", "Which group is at the highest risk for completed suicide in adolescence?", "Females", "Males", "Early maturing girls", "Straight-A students", 1, "Boys use more lethal means.", "While girls attempt suicide more often, boys complete it at a higher rate."],
+      ["Adolescence Social", "Juvenile delinquency peaks during:", "Early childhood", "Middle childhood", "Middle adolescence (15-16)", "Late adulthood", 2, "It aligns with peak reward-seeking brain changes.", "Delinquent behavior rises in early adolescence, peaks in middle adolescence, and then declines."],
+
+      // EARLY & MIDDLE ADULTHOOD (176-190)
+      ["Early Adulthood", "The transition period from late teens to mid-20s, characterized by exploration, is called:", "Late adolescence", "Emerging adulthood", "Middle adulthood", "Senescence", 1, "They are 'emerging' into adults.", "Emerging adults are no longer adolescents, but haven't fully taken on adult roles."],
+      ["Early Adulthood", "Biological aging (senescence) typically begins in:", "Early adolescence", "Early adulthood (20s/30s)", "Middle adulthood (40s)", "Late adulthood (65+)", 1, "The peak is reached, then decline starts.", "Once physical peak is reached in the 20s, biological aging begins its slow process."],
+      ["Early Adulthood", "According to Perry, cognitive development in early adulthood shifts from dualistic thinking (right/wrong) to:", "Magical thinking", "Relativistic thinking", "Concrete thinking", "Egocentrism", 1, "Everything is relative.", "They realize truth depends on context and perspective."],
+      ["Early Adulthood", "Erikson's stage for early adulthood is:", "Identity vs. Role Confusion", "Intimacy vs. Isolation", "Generativity vs. Stagnation", "Integrity vs. Despair", 1, "It's about finding a partner.", "Young adults seek deep, committed relationships to avoid feeling isolated."],
+      ["Early Adulthood", "Sternberg's Triangular Theory of Love comprises which three components?", "Lust, Trust, Honesty", "Intimacy, Passion, Commitment", "Friendship, Romance, Marriage", "Proximity, Similarity, Attractiveness", 1, "Consummate love has all three.", "Intimacy is emotional, passion is physical, and commitment is cognitive."],
+      ["Middle Adulthood", "The age-related loss of vision focusing ability (need for reading glasses) is:", "Glaucoma", "Macular degeneration", "Presbyopia", "Cataracts", 2, "Old eyes.", "The lens loses its capacity to adjust to objects at varying distances around age 60."],
+      ["Middle Adulthood", "The end of menstruation and reproductive capacity in women is called:", "Menarche", "Climacteric", "Menopause", "Senescence", 2, "It's a pause in menses.", "Menopause usually occurs in the early 50s, marked by a drop in estrogen."],
+      ["Middle Adulthood", "Fluid intelligence involves:", "Accumulated knowledge", "Information processing skills, speed, and working memory", "Vocabulary size", "Historical facts", 1, "It's 'fluid' like processing.", "Fluid intelligence tends to peak in early adulthood and decline slowly thereafter."],
+      ["Middle Adulthood", "Crystallized intelligence involves:", "Processing speed", "Abstract logic", "Accumulated knowledge, vocabulary, and experience", "Reaction time", 2, "It's solid, like a crystal.", "Crystallized intelligence increases through middle adulthood as we learn more."],
+      ["Middle Adulthood", "Erikson's stage for middle adulthood is:", "Intimacy vs. Isolation", "Identity vs. Role Confusion", "Generativity vs. Stagnation", "Integrity vs. Despair", 2, "Generating something for the next generation.", "Adults focus on contributing to society, raising children, or mentoring (generativity)."],
+      ["Middle Adulthood", "The 'sandwich generation' refers to middle-aged adults who are:", "Working two jobs", "Caught between caring for their children and their aging parents", "Eating on the go", "Stuck in middle management", 1, "They are sandwiched between generations.", "This causes significant stress due to dual caregiving roles."],
+      ["Middle Adulthood", "The midlife crisis is:", "Experienced universally by everyone at exactly age 40", "A myth; most people experience a smooth transition", "More of a slow 'midlife transition' for most, rather than a crisis", "Caused entirely by menopause", 2, "Hollywood exaggerates it.", "Research shows only a small minority experience a severe, traumatic midlife crisis."],
+      ["Middle Adulthood", "The 'Big Five' personality traits are:", "Happy, Sad, Angry, Fearful, Disgusted", "Openness, Conscientiousness, Extroversion, Agreeableness, Neuroticism (OCEAN)", "Oral, Anal, Phallic, Latency, Genital", "Id, Ego, Superego, Libido, Thanatos", 1, "Remember the acronym OCEAN.", "These traits tend to remain relatively stable throughout adulthood."],
+      ["Middle Adulthood", "Burnout in the workplace is characterized by:", "High pay but low status", "Mental exhaustion, cynicism, and reduced efficacy", "Rapid promotions", "Working part-time", 1, "The flame is burned out.", "It usually happens in helping professions (teaching, nursing) due to chronic stress."],
+      ["Middle Adulthood", "The 'glass ceiling' refers to:", "The need for reading glasses", "An invisible barrier to career advancement for women and minorities", "The fragility of bones in osteoporosis", "A type of architecture in modern offices", 1, "You can see the top, but can't reach it.", "It prevents targeted groups from reaching executive levels."],
+
+      // LATE ADULTHOOD & DEATH (191-200)
+      ["Late Adulthood", "Life expectancy refers to:", "The absolute maximum years a human can live", "The average number of years a person born in a specific year can expect to live", "The years lived in good health", "The age of retirement", 1, "It is a statistical average.", "Life expectancy has increased dramatically over the last century."],
+      ["Late Adulthood", "The most common form of dementia is:", "Parkinson's Disease", "Vascular Dementia", "Alzheimer's Disease", "Lewy Body Dementia", 2, "It involves plaques and tangles.", "Alzheimer's accounts for 60-80% of dementia cases."],
+      ["Late Adulthood", "Erikson's final stage of psychosocial development is:", "Generativity vs. Stagnation", "Autonomy vs. Shame", "Integrity vs. Despair", "Intimacy vs. Isolation", 2, "Looking back on life.", "Older adults reflect on their life and either feel satisfied (integrity) or regretful (despair)."],
+      ["Late Adulthood", "Socioemotional Selectivity Theory suggests that older adults:", "Become isolated and depressed", "Shrink their social networks to prioritize emotionally meaningful relationships", "Make as many new friends as possible", "Stop caring about relationships", 1, "They select quality over quantity.", "As time becomes limited, older adults focus on positive, close connections."],
+      ["Late Adulthood", "Activities of Daily Living (ADLs) include:", "Paying bills", "Shopping for groceries", "Basic self-care tasks like bathing, dressing, and eating", "Driving a car", 2, "They are the most basic tasks.", "Instrumental ADLs (IADLs) include the more complex tasks like paying bills."],
+      ["Death & Dying", "The medical definition of death currently accepted in most industrialized nations is:", "Cessation of heartbeat", "Brain death (irreversible cessation of all brain and brain stem activity)", "Cessation of breathing", "Social death", 1, "The brain controls everything.", "Because machines can keep the heart beating, brain death is the standard."],
+      ["Death & Dying", "Kübler-Ross's five stages of dying begin with:", "Anger", "Bargaining", "Depression", "Denial", 3, "It's a protective mechanism.", "The initial reaction to terminal illness is often denial of the diagnosis."],
+      ["Death & Dying", "In Kübler-Ross's stages, asking 'Why me?' represents:", "Denial", "Anger", "Bargaining", "Acceptance", 1, "It is frustration with fate.", "Anger is directed at the illness, doctors, family, or God."],
+      ["Death & Dying", "Palliative care focuses on:", "Curing the disease", "Relieving pain and improving quality of life, not prolonging life", "Euthanasia", "Experimental treatments", 1, "It is 'comfort care'.", "Palliative care is the core of hospice, focusing on physical and emotional comfort."],
+      ["Death & Dying", "A document detailing a person's healthcare wishes if they become incapacitated is an:", "Informed consent", "Advance medical directive (e.g., Living Will)", "Power of attorney only", "Insurance policy", 1, "It's directed 'in advance'.", "It ensures a patient's wishes regarding life-support and care are respected."]
+    ];
+
+    // Map raw data into the full structured bank
+    const FULL_BANK = rawQuestions.map((q, id) => ({
+      id: id,
+      src: q[0],
+      q: q[1],
+      options: [q[2], q[3], q[4], q[5]],
+      ans: q[6],
+      hint: q[7],
+      exp: q[8]
+    }));
+
+    // ==========================================
+    // CANVAS CELEBRATION ENGINE
+    // ==========================================
+    const Celebrations = {
+      canvas: null,
+      ctx: null,
+      particles: [],
+      animationId: null,
+      activeType: 'None',
+      
+      init() {
+        this.canvas = document.getElementById('celebration-canvas');
+        if(!this.canvas) return;
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+      },
+      resize() {
+        if(!this.canvas) return;
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+      },
+      trigger(type) {
+        if (type === 'None') return;
+        this.activeType = type;
+        this.particles = [];
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+
+        if (type === 'Confetti') {
+          for(let i=0; i<100; i++) {
+            this.particles.push({
+              x: w/2, y: h/2 + 100,
+              vx: (Math.random()-0.5)*20, vy: (Math.random()-1)*20 - 5,
+              color: `hsl(${Math.random()*360}, 100%, 50%)`,
+              size: Math.random()*8+4,
+              life: 1
+            });
+          }
+        } else if (type === 'Fireworks') {
+          for(let j=0; j<3; j++) {
+            let cx = w/4 + (Math.random()*w/2);
+            let cy = h/4 + (Math.random()*h/4);
+            let color = `hsl(${Math.random()*360}, 100%, 50%)`;
+            for(let i=0; i<40; i++) {
+              let angle = Math.random() * Math.PI * 2;
+              let speed = Math.random() * 8 + 2;
+              this.particles.push({
+                x: cx, y: cy,
+                vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed,
+                color: color, size: Math.random()*4+2, life: 1, decay: Math.random()*0.02 + 0.01
+              });
+            }
+          }
+        } else if (type === 'Stars') {
+          for(let i=0; i<30; i++) {
+            this.particles.push({
+              x: w/2, y: h/2,
+              vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15,
+              rot: Math.random()*Math.PI, vRot: (Math.random()-0.5)*0.2,
+              size: Math.random()*15+10, life: 1, decay: 0.015
+            });
+          }
+        } else if (type === 'Checkmark') {
+          this.particles.push({ type: 'check', life: 1, decay: 0.02 });
+        }
+
+        if (this.animationId) cancelAnimationFrame(this.animationId);
+        this.animate();
+      },
+      drawStar(cx, cy, spikes, outerRadius, innerRadius, rot) {
+        let ctx = this.ctx;
+        let step = Math.PI / spikes;
+        ctx.beginPath();
+        for (let i = 0; i < spikes; i++) {
+          let x = cx + Math.cos(rot) * outerRadius;
+          let y = cy + Math.sin(rot) * outerRadius;
+          ctx.lineTo(x, y);
+          rot += step;
+          x = cx + Math.cos(rot) * innerRadius;
+          y = cy + Math.sin(rot) * innerRadius;
+          ctx.lineTo(x, y);
+          rot += step;
+        }
+        ctx.closePath();
+        ctx.fill();
+      },
+      animate() {
+        if (!this.ctx) return;
+        this.ctx.clearRect(0,0, this.canvas.width, this.canvas.height);
+        let active = false;
+
+        this.particles.forEach(p => {
+          if (p.life <= 0) return;
+          active = true;
+          
+          if (p.type === 'check') {
+            this.ctx.save();
+            this.ctx.globalAlpha = p.life;
+            this.ctx.strokeStyle = '#22c55e';
+            this.ctx.lineWidth = 15;
+            this.ctx.lineCap = 'round';
+            this.ctx.lineJoin = 'round';
+            let cx = this.canvas.width/2;
+            let cy = this.canvas.height/2;
+            let scale = 1 + (1-p.life);
+            this.ctx.translate(cx, cy);
+            this.ctx.scale(scale, scale);
+            this.ctx.beginPath();
+            this.ctx.moveTo(-30, 0);
+            this.ctx.lineTo(-10, 25);
+            this.ctx.lineTo(40, -35);
+            this.ctx.stroke();
+            this.ctx.restore();
+            p.life -= p.decay;
+            return;
+          }
+
+          p.x += p.vx;
+          p.y += p.vy;
+          
+          if (this.activeType === 'Confetti' || this.activeType === 'Fireworks') {
+            p.vy += 0.2; // Gravity
+          }
+          
+          this.ctx.save();
+          this.ctx.globalAlpha = p.life;
+          this.ctx.fillStyle = p.color || '#fbbf24';
+          
+          if (this.activeType === 'Stars') {
+            p.rot += p.vRot;
+            this.drawStar(p.x, p.y, 5, p.size, p.size/2, p.rot);
+          } else {
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+            this.ctx.fill();
+          }
+          this.ctx.restore();
+
+          p.life -= (p.decay || 0.015);
+        });
+
+        if (active) {
+          this.animationId = requestAnimationFrame(() => this.animate());
+        } else {
+          this.ctx.clearRect(0,0, this.canvas.width, this.canvas.height);
+        }
+      }
+    };
+
+    // ==========================================
+    // REACT COMPONENTS
+    // ==========================================
+
+    const App = () => {
+      const [view, setView] = useState('settings'); 
+      const [settings, setSettings] = useState({
+        qCount: 10,
+        mode: 'Comprehensive', 
+        timerType: 'Per-exam', 
+        timerSize: 'Big', 
+        celebration: 'Confetti',
+        theme: 'Midnight',
+        emojiStyle: 'Letters', 
+        shuffleQ: true,
+        shuffleA: true
+      });
+
+      const [questions, setQuestions] = useState([]);
+      const [answers, setAnswers] = useState({}); 
+      const [currentIdx, setCurrentIdx] = useState(0);
+      
+      const [globalTime, setGlobalTime] = useState(0);
+      const [questionTime, setQuestionTime] = useState(0);
+
+      useEffect(() => {
+        document.body.setAttribute('data-theme', settings.theme.toLowerCase());
+        Celebrations.init();
+      }, [settings.theme]);
+
+      const startExam = (retakeWrongOnly = false) => {
+        let selectedQs = [];
+        if (retakeWrongOnly) {
+          selectedQs = questions.filter((q, i) => answers[i] && !answers[i].correct && !answers[i].skipped);
+        } else {
+          let pool = [...FULL_BANK];
+          if (settings.shuffleQ) pool = pool.sort(() => Math.random() - 0.5);
+          
+          // Guard to ensure we don't try to pull more than exists in FULL_BANK
+          const amountToPull = Math.min(settings.qCount, pool.length);
+          selectedQs = pool.slice(0, amountToPull);
+          
+          if (settings.shuffleA) {
+            selectedQs = selectedQs.map(q => {
+              let opts = q.options.map((txt, i) => ({txt, i}));
+              opts.sort(() => Math.random() - 0.5);
+              let newAnsIndex = opts.findIndex(o => o.i === q.ans);
+              return { ...q, options: opts.map(o => o.txt), ans: newAnsIndex };
+            });
+          }
+        }
+        
+        setQuestions(selectedQs);
+        setAnswers({});
+        setCurrentIdx(0);
+        
+        if (settings.timerType === 'Per-exam') setGlobalTime(selectedQs.length * 60);
+        if (settings.timerType === 'Per-question') setQuestionTime(60);
+        
+        setView('exam');
+      };
+
+      const handleAnswer = (optIdx) => {
+        if (answers[currentIdx]?.selected !== undefined) return; 
+        
+        const isCorrect = optIdx === questions[currentIdx].ans;
+        setAnswers(prev => ({ ...prev, [currentIdx]: { ...prev[currentIdx], selected: optIdx, correct: isCorrect, skipped: false } }));
+        
+        if (isCorrect) Celebrations.trigger(settings.celebration);
+      };
+
+      const handleSkip = () => {
+        if (answers[currentIdx]?.selected !== undefined) return;
+        setAnswers(prev => ({ ...prev, [currentIdx]: { ...prev[currentIdx], skipped: true } }));
+        goNext();
+      };
+
+      const handleFlag = () => {
+        setAnswers(prev => ({
+          ...prev, 
+          [currentIdx]: { ...prev[currentIdx], flagged: !prev[currentIdx]?.flagged }
+        }));
+      };
+
+      const goNext = () => {
+        if (currentIdx < questions.length - 1) {
+          setCurrentIdx(currentIdx + 1);
+          if (settings.timerType === 'Per-question') setQuestionTime(60);
+        }
+      };
+      
+      const goPrev = () => {
+        if (currentIdx > 0) {
+          setCurrentIdx(currentIdx - 1);
+          if (settings.timerType === 'Per-question' && answers[currentIdx-1]?.selected === undefined) setQuestionTime(60);
+        }
+      };
+
+      const endExam = () => setView('results');
+
+      // Timer Logic
+      useEffect(() => {
+        if (view !== 'exam' || settings.timerType === 'Off') return;
+        const timerId = setInterval(() => {
+          if (settings.timerType === 'Per-exam') {
+            setGlobalTime(prev => {
+              if (prev <= 1) { endExam(); return 0; }
+              return prev - 1;
+            });
+          } else if (settings.timerType === 'Per-question') {
+            setQuestionTime(prev => {
+              if (prev <= 1) { 
+                if (answers[currentIdx]?.selected === undefined) handleSkip(); 
+                return 60; 
+              }
+              return prev - 1;
+            });
+          }
+        }, 1000);
+        return () => clearInterval(timerId);
+      }, [view, settings.timerType, currentIdx, answers]);
+
+      // Global Keybinds
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          if (view !== 'exam') return;
+          if (e.key === 'ArrowRight') goNext();
+          if (e.key === 'ArrowLeft') goPrev();
+          if (['1','2','3','4','a','b','c','d'].includes(e.key.toLowerCase())) {
+            const map = {'1':0,'2':1,'3':2,'4':3,'a':0,'b':1,'c':2,'d':3};
+            handleAnswer(map[e.key.toLowerCase()]);
+          }
+          if (e.key.toLowerCase() === 'f') handleFlag();
+          if (e.key.toLowerCase() === 's') handleSkip();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [view, currentIdx, answers]);
+
+      return (
+        <div className="min-h-screen">
+          {view === 'settings' && <SettingsScreen settings={settings} setSettings={setSettings} startExam={startExam} totalQs={FULL_BANK.length} />}
+          {view === 'exam' && (
+            <ExamScreen 
+              questions={questions} currentIdx={currentIdx} setCurrentIdx={setCurrentIdx}
+              answers={answers} handleAnswer={handleAnswer} handleSkip={handleSkip} handleFlag={handleFlag}
+              endExam={endExam} settings={settings} globalTime={globalTime} questionTime={questionTime}
+              goNext={goNext} goPrev={goPrev}
+            />
+          )}
+          {view === 'results' && <ResultsScreen questions={questions} answers={answers} startExam={startExam} setView={setView} />}
+        </div>
+      );
+    };
+
+    // ==========================================
+    // SETTINGS SCREEN
+    // ==========================================
+    const SettingsScreen = ({ settings, setSettings, startExam, totalQs }) => {
+      const update = (k, v) => setSettings(p => ({...p, [k]: v}));
+      
+      const techniques = [
+        { title: 'Active Recall', text: 'Testing yourself instead of passively re-reading text.' },
+        { title: 'Spaced Repetition', text: 'Reviewing information at gradually increasing intervals.' },
+        { title: 'Interleaving', text: 'Mixing different topics together during a study session.' },
+        { title: 'Feynman Technique', text: 'Explaining a concept in simple terms as if teaching a child.' },
+        { title: 'Elaborative Interrogation', text: 'Asking "why" and connecting new info to existing knowledge.' },
+        { title: 'Pomodoro Technique', text: 'Studying in focused 25-minute blocks with short breaks.' }
+      ];
+
+      return (
+        <div className="max-w-5xl mx-auto p-6 space-y-8">
+          <div className="text-center space-y-2 mt-8">
+            <h1 className="text-4xl font-extrabold tracking-tight">Human Growth & Development Exam</h1>
+            <p className="text-lg text-[var(--text-muted)]">Configure your study session and begin.</p>
+          </div>
+
+          <div className="themed-card rounded-2xl p-6 shadow-xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider">Question Count</label>
+              <select className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-lg p-3 outline-none" value={settings.qCount} onChange={e => update('qCount', parseInt(e.target.value))}>
+                {[10, 20, 30, 90, 150, totalQs].map(n => <option key={n} value={n}>{n} Questions</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider">Difficulty Mode</label>
+              <select className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-lg p-3 outline-none" value={settings.mode} onChange={e => update('mode', e.target.value)}>
+                <option value="Easy">Easy (Auto Hints)</option>
+                <option value="Comprehensive">Comprehensive (No Hints)</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider">Theme</label>
+              <select className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-lg p-3 outline-none" value={settings.theme} onChange={e => update('theme', e.target.value)}>
+                {['Midnight', 'Dawn', 'Ocean', 'Forest', 'Ember'].map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider">Timer Type</label>
+              <select className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-lg p-3 outline-none" value={settings.timerType} onChange={e => update('timerType', e.target.value)}>
+                {['Per-exam', 'Per-question', 'Off'].map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider">Timer Size</label>
+              <select className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-lg p-3 outline-none" value={settings.timerSize} onChange={e => update('timerSize', e.target.value)} disabled={settings.timerType === 'Off'}>
+                {['Small', 'Big', 'Extra Big'].map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider">Celebration Style</label>
+              <select className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-lg p-3 outline-none" value={settings.celebration} onChange={e => update('celebration', e.target.value)}>
+                {['Confetti', 'Fireworks', 'Stars', 'Checkmark', 'None'].map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider">Option Emojis</label>
+              <select className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-lg p-3 outline-none" value={settings.emojiStyle} onChange={e => update('emojiStyle', e.target.value)}>
+                {['None', 'Letters', 'Circles', 'Animals', 'Food', 'Objects'].map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-4 col-span-1 md:col-span-2 pt-4 flex items-center justify-start gap-6">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" className="w-5 h-5 accent-[var(--primary)]" checked={settings.shuffleQ} onChange={e => update('shuffleQ', e.target.checked)} />
+                <span>Shuffle Questions</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" className="w-5 h-5 accent-[var(--primary)]" checked={settings.shuffleA} onChange={e => update('shuffleA', e.target.checked)} />
+                <span>Shuffle Answers</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="flex justify-center pt-4">
+            <button onClick={() => startExam()} className="themed-button px-10 py-4 rounded-xl text-xl font-bold shadow-lg flex items-center gap-2 transform transition hover:scale-105">
+              Start Exam 
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            </button>
+          </div>
+
+          <div className="pt-12">
+            <h2 className="text-2xl font-bold mb-6 text-center text-[var(--text-muted)] border-b border-[var(--border)] pb-2">Modern Study Techniques</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {techniques.map(t => (
+                <div key={t.title} className="themed-card p-4 rounded-xl border border-[var(--border)] shadow-sm hover:shadow-md transition">
+                  <h3 className="font-bold text-[var(--primary)] text-lg mb-1">{t.title}</h3>
+                  <p className="text-sm opacity-90">{t.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // ==========================================
+    // EXAM SCREEN
+    // ==========================================
+    const ExamScreen = ({ questions, currentIdx, setCurrentIdx, answers, handleAnswer, handleSkip, handleFlag, endExam, settings, globalTime, questionTime, goNext, goPrev }) => {
+      const [sidebarOpen, setSidebarOpen] = useState(true);
+      const [reviewModalOpen, setReviewModalOpen] = useState(false);
+      const [manualHintOpen, setManualHintOpen] = useState(false);
+      
+      const q = questions[currentIdx];
+      const ansData = answers[currentIdx] || {};
+      const isAnswered = ansData.selected !== undefined;
+      const isSkipped = ansData.skipped;
+
+      useEffect(() => {
+        setManualHintOpen(false); // reset manual hint on question change
+      }, [currentIdx]);
+
+      // H keybinding for Hint
+      useEffect(() => {
+        const handleH = (e) => {
+          if(e.key.toLowerCase() === 'h' && settings.mode === 'Comprehensive') setManualHintOpen(true);
+        }
+        window.addEventListener('keydown', handleH);
+        return () => window.removeEventListener('keydown', handleH);
+      }, [settings.mode]);
+
+      const formatTime = (seconds) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+      };
+
+      const timerClass = settings.timerSize === 'Small' ? 'text-xl' : settings.timerSize === 'Big' ? 'text-4xl font-bold' : 'text-7xl font-black tracking-tighter';
+      const emojis = {
+        'None': ['','','',''],
+        'Letters': ['A. ', 'B. ', 'C. ', 'D. '],
+        'Circles': ['🔴 ', '🔵 ', '🟡 ', '🟢 '],
+        'Animals': ['🐶 ', '🐱 ', '🦊 ', '🐼 '],
+        'Food': ['🍎 ', '🍔 ', '🍕 ', '🍩 '],
+        'Objects': ['🚗 ', '🚀 ', '⌚ ', '💡 ']
+      }[settings.emojiStyle];
+
+      const Sidebar = () => (
+        <div className={`themed-sidebar flex-shrink-0 flex flex-col transition-all duration-300 ${sidebarOpen ? 'w-64 md:w-80' : 'w-0 overflow-hidden opacity-0'}`}>
+          <div className="p-4 border-b themed-border font-bold text-lg flex justify-between items-center whitespace-nowrap">
+            Navigator
+            <button onClick={() => setSidebarOpen(false)} className="text-[var(--text-muted)] hover:text-white md:hidden">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+          <div className="p-4 overflow-y-auto flex-1 grid grid-cols-5 gap-2 content-start">
+            {questions.map((_, i) => {
+              const a = answers[i] || {};
+              let statusClass = "bg-[var(--bg-base)] border-[var(--border)] text-[var(--text-muted)] hover:bg-[var(--primary)] hover:text-white";
+              if (a.correct === true) statusClass = "status-correct";
+              else if (a.correct === false && !a.skipped) statusClass = "status-incorrect";
+              else if (a.skipped) statusClass = "status-skipped";
+              
+              return (
+                <button 
+                  key={i} 
+                  onClick={() => setCurrentIdx(i)}
+                  className={`w-10 h-10 rounded-md border flex items-center justify-center font-bold text-sm transition-all relative ${statusClass} ${currentIdx === i ? 'ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--bg-sidebar)] scale-110 z-10' : ''} ${a.flagged ? 'status-flagged' : ''}`}
+                >
+                  {i + 1}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      );
+
+      return (
+        <div className="flex h-screen overflow-hidden">
+          <Sidebar />
+          
+          <div className="flex-1 flex flex-col relative h-full">
+            {/* Top Toolbar */}
+            <div className="h-16 border-b themed-border flex items-center justify-between px-4 themed-card shrink-0">
+              <div className="flex items-center gap-4">
+                {!sidebarOpen && (
+                  <button onClick={() => setSidebarOpen(true)} className="p-2 bg-[var(--bg-base)] rounded-md border themed-border hover:bg-[var(--border)]">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                  </button>
+                )}
+                <span className="font-bold text-lg text-[var(--text-muted)]">Q: {currentIdx + 1} / {questions.length}</span>
+              </div>
+              
+              {settings.timerType !== 'Off' && (
+                <div className={`font-mono text-[var(--primary)] ${timerClass} transition-all`}>
+                  {settings.timerType === 'Per-exam' ? formatTime(globalTime) : formatTime(questionTime)}
+                </div>
+              )}
+              
+              <button onClick={endExam} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition text-sm">
+                End Exam
+              </button>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 overflow-y-auto p-4 md:p-8">
+              <div className="max-w-4xl mx-auto space-y-6">
+                
+                {/* Header info */}
+                <div className="flex justify-between items-center text-sm font-semibold text-[var(--text-muted)] uppercase tracking-widest border-b themed-border pb-2">
+                  <span className="flex items-center gap-2">
+                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                     {q.src}
+                  </span>
+                  <span className="flex items-center gap-3">
+                    <button onClick={handleFlag} className={`flex items-center gap-1 px-3 py-1 rounded-full border transition ${ansData.flagged ? 'bg-orange-500/20 border-orange-500 text-orange-500' : 'border-transparent hover:bg-[var(--border)]'}`}>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" /></svg>
+                      Flag [F]
+                    </button>
+                    {!isAnswered && (
+                      <button onClick={handleSkip} className="flex items-center gap-1 px-3 py-1 rounded-full border border-transparent hover:bg-[var(--border)] transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
+                        Skip [S]
+                      </button>
+                    )}
+                  </span>
+                </div>
+
+                {/* Question */}
+                <h2 className="text-2xl md:text-3xl font-medium leading-relaxed">{q.q}</h2>
+
+                {/* Options */}
+                <div className="grid grid-cols-1 gap-3 pt-4">
+                  {q.options.map((opt, i) => {
+                    let styleClass = "bg-[var(--bg-card)] border-[var(--border)] hover:border-[var(--primary)] hover:bg-[var(--border)]";
+                    if (isAnswered) {
+                      if (i === q.ans) styleClass = "status-correct border-transparent ring-4 ring-green-500/30";
+                      else if (i === ansData.selected) styleClass = "status-incorrect border-transparent ring-4 ring-red-500/30";
+                      else styleClass = "opacity-50 grayscale bg-[var(--bg-base)] border-[var(--border)] cursor-not-allowed";
+                    } else if (isSkipped) {
+                      styleClass = "opacity-50 bg-[var(--bg-base)] border-[var(--border)] cursor-not-allowed";
+                    }
+
+                    return (
+                      <button 
+                        key={i} 
+                        onClick={() => handleAnswer(i)}
+                        disabled={isAnswered || isSkipped}
+                        className={`text-left p-5 rounded-xl border-2 transition-all duration-200 text-lg flex items-start gap-3 shadow-sm ${styleClass}`}
+                      >
+                        <span className="font-bold opacity-80 mt-0.5">{emojis[i]}</span>
+                        <span>{opt}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Rationale & Hint */}
+                <div className="pt-6 space-y-4">
+                   {(settings.mode === 'Easy' && !isAnswered && !isSkipped) && (
+                     <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg text-blue-200 flex items-start gap-3">
+                       <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                       <p><strong className="text-blue-400">Hint:</strong> {q.hint}</p>
+                     </div>
+                   )}
+                   {(settings.mode === 'Comprehensive' && !isAnswered && !isSkipped && !manualHintOpen) && (
+                     <button onClick={() => setManualHintOpen(true)} className="text-sm px-4 py-2 border border-[var(--border)] rounded hover:bg-[var(--border)] text-[var(--text-muted)]">Show Hint [H]</button>
+                   )}
+                   {(manualHintOpen && !isAnswered && !isSkipped) && (
+                     <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg text-blue-200">
+                       <p><strong className="text-blue-400">Hint:</strong> {q.hint}</p>
+                     </div>
+                   )}
+
+                   {(isAnswered) && (
+                     <div className={`p-5 rounded-xl border ${ansData.correct ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
+                        <h4 className={`font-bold mb-1 flex items-center gap-2 ${ansData.correct ? 'text-green-400' : 'text-red-400'}`}>
+                           {ansData.correct ? 'Correct!' : 'Incorrect'}
+                        </h4>
+                        <p className="opacity-90 leading-relaxed">{q.exp}</p>
+                     </div>
+                   )}
+                </div>
+
+                {/* Prev/Next Controls */}
+                <div className="flex justify-between pt-8 border-t themed-border">
+                   <button onClick={goPrev} disabled={currentIdx === 0} className="px-6 py-3 rounded-lg border themed-border bg-[var(--bg-card)] hover:bg-[var(--border)] disabled:opacity-30 flex items-center gap-2">
+                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" /></svg>
+                     Prev
+                   </button>
+                   <button onClick={() => setReviewModalOpen(true)} className="px-6 py-3 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--border)] flex items-center gap-2">
+                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                     Review
+                   </button>
+                   {currentIdx < questions.length - 1 ? (
+                     <button onClick={goNext} className="themed-button px-6 py-3 rounded-lg flex items-center gap-2">
+                       Next
+                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                     </button>
+                   ) : (
+                     <button onClick={endExam} className="px-6 py-3 bg-[var(--primary)] text-white rounded-lg font-bold hover:brightness-110 flex items-center gap-2">
+                        Finish Exam
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                     </button>
+                   )}
+                </div>
+
+              </div>
+            </div>
+          </div>
+          
+          {reviewModalOpen && <QuickReviewModal questions={questions} answers={answers} setOpen={setReviewModalOpen} jumpTo={setCurrentIdx} />}
+        </div>
+      )
+    };
+
+    // ==========================================
+    // QUICK REVIEW MODAL
+    // ==========================================
+    const QuickReviewModal = ({ questions, answers, setOpen, jumpTo }) => {
+      const [filter, setFilter] = useState('All');
+      
+      const filtered = questions.map((q,i) => ({i, q, a: answers[i]||{}})).filter(obj => {
+        if (filter === 'All') return true;
+        if (filter === 'Flagged') return obj.a.flagged;
+        if (filter === 'Wrong') return obj.a.correct === false && !obj.a.skipped;
+        if (filter === 'Skipped') return obj.a.skipped || obj.a.selected === undefined;
+        return true;
+      });
+
+      return (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-[9999] backdrop-blur-sm">
+          <div className="bg-[var(--bg-base)] border border-[var(--border)] rounded-2xl w-full max-w-3xl h-[80vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="p-4 border-b themed-border flex justify-between items-center bg-[var(--bg-card)]">
+              <h3 className="text-xl font-bold">Quick Review</h3>
+              <button onClick={() => setOpen(false)} className="text-[var(--text-muted)] hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
+            <div className="p-4 border-b themed-border flex gap-2 overflow-x-auto">
+              {['All', 'Flagged', 'Wrong', 'Skipped'].map(f => (
+                <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 rounded-full border text-sm font-semibold transition ${filter === f ? 'bg-[var(--primary)] border-[var(--primary)] text-white' : 'border-[var(--border)] text-[var(--text-muted)] hover:bg-[var(--border)]'}`}>
+                  {f}
+                </button>
+              ))}
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {filtered.length === 0 ? <p className="text-center text-[var(--text-muted)] mt-10">No questions match this filter.</p> : null}
+              {filtered.map(obj => (
+                <button key={obj.i} onClick={() => { jumpTo(obj.i); setOpen(false); }} className="w-full text-left p-4 rounded-xl border themed-border hover:bg-[var(--bg-card)] transition flex items-center justify-between gap-4 group">
+                  <div className="flex items-center gap-4 flex-1 truncate">
+                    <span className={`w-8 h-8 shrink-0 rounded-md border flex items-center justify-center text-xs font-bold ${obj.a.correct ? 'status-correct' : obj.a.correct === false && !obj.a.skipped ? 'status-incorrect' : obj.a.skipped ? 'status-skipped' : 'border-[var(--border)] bg-[var(--bg-base)] text-[var(--text-muted)]'}`}>{obj.i + 1}</span>
+                    <span className="truncate text-sm opacity-90 group-hover:text-[var(--primary)] transition">{obj.q.q}</span>
+                  </div>
+                  {obj.a.flagged && <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-orange-500 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" /></svg>}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // ==========================================
+    // RESULTS SCREEN
+    // ==========================================
+    const ResultsScreen = ({ questions, answers, startExam, setView }) => {
+      const total = questions.length;
+      let correct = 0, wrong = 0, skipped = 0;
+      
+      const sourceMap = {};
+      
+      questions.forEach((q, i) => {
+        const a = answers[i] || {};
+        if (!sourceMap[q.src]) sourceMap[q.src] = { total: 0, correct: 0 };
+        sourceMap[q.src].total++;
+        
+        if (a.correct === true) { correct++; sourceMap[q.src].correct++; }
+        else if (a.correct === false && !a.skipped) wrong++;
+        else skipped++;
+      });
+      
+      const percentage = Math.round((correct / total) * 100) || 0;
+      
+      // Calculate circle dasharray for Score Ring
+      const radius = 60;
+      const circumference = 2 * Math.PI * radius;
+      const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+      return (
+        <div className="max-w-4xl mx-auto p-6 py-12 space-y-12">
+          
+          <div className="text-center space-y-2">
+            <h1 className="text-5xl font-extrabold tracking-tight text-[var(--primary)]">Exam Complete!</h1>
+            <p className="text-lg text-[var(--text-muted)]">Here's a breakdown of your performance.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            {/* Score Ring */}
+            <div className="flex justify-center">
+              <div className="relative w-48 h-48">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 140 140">
+                  <circle cx="70" cy="70" r={radius} className="stroke-[var(--border)]" strokeWidth="12" fill="none" />
+                  <circle cx="70" cy="70" r={radius} className="stroke-[var(--primary)] transition-all duration-1000 ease-out" strokeWidth="12" fill="none" strokeLinecap="round" style={{ strokeDasharray: circumference, strokeDashoffset: strokeDashoffset }} />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-5xl font-black">{percentage}%</span>
+                  <span className="text-sm font-bold text-[var(--text-muted)] uppercase tracking-widest">Score</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="themed-card p-6 rounded-2xl flex flex-col items-center justify-center border themed-border">
+                <span className="text-4xl font-bold text-green-500">{correct}</span>
+                <span className="text-sm text-[var(--text-muted)] font-semibold uppercase">Correct</span>
+              </div>
+              <div className="themed-card p-6 rounded-2xl flex flex-col items-center justify-center border themed-border">
+                <span className="text-4xl font-bold text-red-500">{wrong}</span>
+                <span className="text-sm text-[var(--text-muted)] font-semibold uppercase">Incorrect</span>
+              </div>
+              <div className="themed-card p-6 rounded-2xl flex flex-col items-center justify-center border themed-border">
+                <span className="text-4xl font-bold text-yellow-500">{skipped}</span>
+                <span className="text-sm text-[var(--text-muted)] font-semibold uppercase">Skipped</span>
+              </div>
+              <div className="themed-card p-6 rounded-2xl flex flex-col items-center justify-center border themed-border">
+                <span className="text-4xl font-bold">{total}</span>
+                <span className="text-sm text-[var(--text-muted)] font-semibold uppercase">Total Qs</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Source Breakdown */}
+          <div className="themed-card p-6 md:p-8 rounded-2xl border themed-border space-y-6">
+             <h2 className="text-2xl font-bold border-b themed-border pb-4">Performance by Topic</h2>
+             <div className="space-y-4">
+                {Object.entries(sourceMap).map(([src, data]) => {
+                  const p = Math.round((data.correct / data.total) * 100);
+                  return (
+                    <div key={src} className="space-y-2">
+                      <div className="flex justify-between text-sm font-semibold">
+                        <span className="opacity-90">{src}</span>
+                        <span className={p > 70 ? 'text-green-400' : p > 40 ? 'text-yellow-400' : 'text-red-400'}>{data.correct} / {data.total} ({p}%)</span>
+                      </div>
+                      <div className="h-3 w-full bg-[var(--bg-base)] rounded-full overflow-hidden border border-[var(--border)]">
+                        <div className="h-full bg-[var(--primary)] transition-all duration-1000" style={{ width: `${p}%`}}></div>
+                      </div>
+                    </div>
+                  )
+                })}
+             </div>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-4 pb-10">
+            {wrong > 0 && (
+              <button onClick={() => startExam(true)} className="px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg transition transform hover:-translate-y-1">
+                Retake Incorrect Only
+              </button>
+            )}
+            <button onClick={() => setView('settings')} className="themed-button px-8 py-4 font-bold rounded-xl shadow-lg transition transform hover:-translate-y-1">
+              Back to Start
+            </button>
+          </div>
+          
+        </div>
+      );
+    };
+
+    // Render React App
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
