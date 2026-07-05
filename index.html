@@ -31,14 +31,68 @@
 
         body {
             min-height: 100vh;
+            width: 100vw;
             display: flex;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(45deg, var(--bg-dark), #302b63, #24243e);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
             overflow: hidden;
             color: var(--text-light);
+            background-color: var(--bg-dark);
+        }
+
+        /* Continuous Image Slider Background */
+        .bg-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-size: cover;
+            background-position: center;
+            z-index: -3;
+            transition: opacity 2s ease-in-out; /* Smooth cinematic fade */
+            opacity: 0;
+        }
+
+        /* Overlay to make text readable */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(45deg, rgba(15, 12, 41, 0.85), rgba(48, 43, 99, 0.7), rgba(36, 36, 62, 0.85));
+            z-index: -2;
+        }
+
+        /* Welcome Scrolling Ticker Banner */
+        .ticker-wrap {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--primary);
+            padding: 12px 0;
+            z-index: 100;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .ticker {
+            display: inline-block;
+            white-space: nowrap;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            animation: tickerScroll 25s linear infinite;
+        }
+
+        @keyframes tickerScroll {
+            0% { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
         }
 
         /* Wavy/Electrical Background Elements */
@@ -46,23 +100,17 @@
             position: absolute;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(0,255,204,0.1) 0%, transparent 60%);
+            background: radial-gradient(circle, rgba(0,255,204,0.15) 0%, transparent 60%);
             top: -50%;
             left: -50%;
             animation: rotateWave 20s linear infinite;
-            z-index: 0;
+            z-index: -1;
             pointer-events: none;
         }
 
         .wave:nth-child(2) {
-            background: radial-gradient(circle, rgba(112,0,255,0.15) 0%, transparent 60%);
+            background: radial-gradient(circle, rgba(112,0,255,0.2) 0%, transparent 60%);
             animation: rotateWave 15s linear infinite reverse;
-        }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
 
         @keyframes rotateWave {
@@ -70,21 +118,29 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Floating Animation for the Container */
+        @keyframes floatingCard {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
         /* Glassmorphism Container */
         .container {
             position: relative;
             width: 400px;
             min-height: 500px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 20px;
             padding: 40px;
-            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(255,255,255,0.05);
             z-index: 10;
             overflow: hidden;
             transition: height 0.3s ease;
+            animation: floatingCard 6s ease-in-out infinite; /* Added float effect */
         }
 
         .form-box {
@@ -109,7 +165,8 @@
             font-size: 2em;
             margin-bottom: 30px;
             color: var(--primary);
-            text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+            text-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
+            letter-spacing: 2px;
         }
 
         .input-group {
@@ -165,12 +222,15 @@
             position: relative;
             overflow: hidden;
             box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         button.submit-btn:hover {
             background: var(--primary);
             color: var(--bg-dark);
             box-shadow: 0 0 25px var(--primary);
+            transform: scale(1.02);
         }
 
         button.submit-btn:disabled {
@@ -178,6 +238,7 @@
             color: #555;
             cursor: not-allowed;
             box-shadow: none;
+            transform: none;
         }
 
         .toggle-links {
@@ -206,8 +267,8 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(15, 12, 41, 0.9);
-            z-index: 100;
+            background: rgba(15, 12, 41, 0.95);
+            z-index: 200;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -281,24 +342,38 @@
 
         .footer {
             position: absolute;
-            bottom: 10px;
+            bottom: 15px;
             width: 100%;
             text-align: center;
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.4);
             pointer-events: none;
         }
     </style>
 </head>
 <body>
 
+    <!-- Cinematic Background Image Layers -->
+    <div id="bg-layer-1" class="bg-layer"></div>
+    <div id="bg-layer-2" class="bg-layer"></div>
+    <div class="overlay"></div>
+
+    <!-- Scrolling Welcome Banner -->
+    <div class="ticker-wrap">
+        <div class="ticker">
+            Welcome to the Authentication Gateway! 🚀 If you are a new user, please click on "Sign Up" to initialize your account. We wish you a fantastic and secure experience in our system! Enjoy your time! ✨
+        </div>
+    </div>
+
+    <!-- Wavy Color Effects -->
     <div class="wave"></div>
     <div class="wave"></div>
 
     <div class="container" id="main-container">
         <!-- Login Form -->
         <div class="form-box active" id="login-form">
-            <h2>Login</h2>
+            <h2>LOGIN</h2>
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="input-group">
                     <input type="text" id="username" required>
@@ -318,7 +393,7 @@
 
         <!-- Signup Form -->
         <div class="form-box" id="signup-form">
-            <h2>Sign Up</h2>
+            <h2>SIGN UP</h2>
             <form onsubmit="handleSignup(event)">
                 <div class="input-group">
                     <input type="text" id="signup-username" required>
@@ -341,7 +416,7 @@
 
         <!-- Forgot Password Form -->
         <div class="form-box" id="forgot-form">
-            <h2>Reset Data</h2>
+            <h2>RESET DATA</h2>
             <form onsubmit="event.preventDefault(); switchForm('login-form');">
                 <div class="input-group">
                     <input type="email" required>
@@ -366,12 +441,52 @@
     </div>
 
     <script>
-        // Initialize users array in local storage if it doesn't exist
+        // --- 1. Dynamic Cinematic Background Slideshow ---
+        const bgImages = [
+            'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1920&auto=format&fit=crop', // Space/Tech
+            'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1920&auto=format&fit=crop', // Circuit Board
+            'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1920&auto=format&fit=crop', // Matrix/Hacker code
+            'https://images.unsplash.com/photo-1614729939124-032f0b56c9ce?q=80&w=1920&auto=format&fit=crop'  // Abstract neon
+        ];
+        
+        let currentImageIndex = 0;
+        let activeLayer = 1;
+        const layer1 = document.getElementById('bg-layer-1');
+        const layer2 = document.getElementById('bg-layer-2');
+
+        // Preload images to ensure smooth transitions
+        bgImages.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+
+        function changeBackground() {
+            const nextImage = bgImages[currentImageIndex];
+            
+            if (activeLayer === 1) {
+                layer2.style.backgroundImage = `url('${nextImage}')`;
+                layer2.style.opacity = 1;
+                layer1.style.opacity = 0;
+                activeLayer = 2;
+            } else {
+                layer1.style.backgroundImage = `url('${nextImage}')`;
+                layer1.style.opacity = 1;
+                layer2.style.opacity = 0;
+                activeLayer = 1;
+            }
+            
+            currentImageIndex = (currentImageIndex + 1) % bgImages.length;
+        }
+
+        // Initialize slideshow
+        changeBackground();
+        setInterval(changeBackground, 6000); // Change image every 6 seconds
+
+        // --- 2. User Authentication Logic ---
         if (!localStorage.getItem('app_users')) {
             localStorage.setItem('app_users', JSON.stringify([]));
         }
 
-        // Function to handle smooth transitions between forms
         function switchForm(formId) {
             document.querySelectorAll('.form-box').forEach(box => {
                 box.classList.remove('active');
@@ -389,7 +504,6 @@
                 targetForm.style.transform = 'translateX(0)';
                 targetForm.style.opacity = '1';
                 
-                // Adjust container height based on the active form
                 const container = document.getElementById('main-container');
                 if(formId === 'signup-form') {
                     container.style.minHeight = '550px';
@@ -401,7 +515,6 @@
             }, 300);
         }
 
-        // Function to handle user sign up and save to local storage
         function handleSignup(event) {
             event.preventDefault();
             const usernameInput = document.getElementById('signup-username').value;
@@ -410,14 +523,12 @@
 
             let users = JSON.parse(localStorage.getItem('app_users'));
             
-            // Check if username already exists to prevent duplicates
             const userExists = users.find(u => u.username === usernameInput);
             if (userExists) {
                 alert("Username already exists! Please choose another one.");
                 return;
             }
 
-            // Save the new user with password
             users.push({ 
                 username: usernameInput, 
                 email: emailInput, 
@@ -429,13 +540,11 @@
             alert("Account initialized successfully! Please Login.");
             switchForm('login-form');
             
-            // Clear input fields after successful signup
             document.getElementById('signup-username').value = '';
             document.getElementById('signup-email').value = '';
             document.getElementById('signup-password').value = '';
         }
 
-        // Fetch browser and OS information
         function getDeviceInfo() {
             const userAgent = navigator.userAgent;
             let deviceType = "Desktop";
@@ -445,7 +554,6 @@
             return `${deviceType} - ${userAgent}`;
         }
 
-        // Handle login process, email notification, and redirection
         async function handleLogin(event) {
             event.preventDefault();
             
@@ -456,12 +564,10 @@
             let is_admin = false;
             let is_valid_user = false;
 
-            // ------ 1. Admin Validation ------
             if (username === "admin" && pass === "admin123") {
                 is_admin = true;
                 is_valid_user = true;
             } else {
-                // ------ 2. Standard User Validation ------
                 let users = JSON.parse(localStorage.getItem('app_users')) || [];
                 const foundUser = users.find(u => u.username === username && u.password === pass);
                 if (foundUser) {
@@ -469,19 +575,16 @@
                 }
             }
 
-            // ------ Stop login if credentials are wrong ------
             if (!is_valid_user) {
                 alert("ACCESS DENIED: Invalid username or password.");
-                return; // Stop execution completely
+                return; 
             }
 
-            // If valid, proceed with visual effects and email
             btn.disabled = true;
             btn.innerText = "Authenticating...";
 
             let locationData = "Location unavailable";
             
-            // Attempt to fetch location based on IP address
             try {
                 const response = await fetch('https://ipapi.co/json/');
                 const data = await response.json();
@@ -492,7 +595,6 @@
 
             const deviceInfo = getDeviceInfo();
 
-            // Prepare data parameters to be sent via EmailJS
             const templateParams = {
                 to_email: 'icunurses@hotmail.com',
                 user_name: username + (is_admin ? " (ADMIN)" : ""),
@@ -501,22 +603,17 @@
                 time: new Date().toLocaleString()
             };
 
-            // Send email using EmailJS
             try {
                 await emailjs.send('service_l6bh49o', 'template_s217fcs', templateParams);
-                console.log("Email sent parameters:", templateParams); 
                 
-                // Trigger success visual effect
                 const overlay = document.getElementById('success-overlay');
                 overlay.classList.add('show');
 
-                // Redirect after the animation completes
                 setTimeout(() => {
                     overlay.classList.remove('show');
                     btn.disabled = false;
                     btn.innerText = "System Entry";
                     
-                    // Admin goes to Adminpage, standard user goes to Mainpage
                     if (is_admin) {
                         window.location.href = 'Adminpage.html';
                     } else {
