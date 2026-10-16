@@ -1,0 +1,2692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biostatistics Master Examination Suite (L1 - L4)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Space Grotesk, Plus Jakarta Sans, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome 6 Pro / Free CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            cosmic: {
+              950: '#070a13',
+              900: '#0b1120',
+              850: '#0f172a',
+              800: '#1e293b',
+              700: '#334155',
+            },
+            neon: {
+              emerald: '#10b981',
+              teal: '#14b8a6',
+              cyan: '#06b6d4',
+              indigo: '#6366f1',
+              violet: '#8b5cf6',
+              rose: '#f43f5e',
+              amber: '#f59e0b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* STREAMING_CHUNK:Defining custom CSS layout styles, glassmorphism, and animations... */
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      background-color: #070a13;
+      color: #f1f5f9;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Cursor Glow Follower */
+    .ambient-glow {
+      position: fixed;
+      pointer-events: none;
+      width: 480px;
+      height: 480px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(6, 182, 212, 0.08) 35%, rgba(16, 185, 129, 0.03) 60%, transparent 75%);
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      transition: transform 0.08s ease-out;
+      will-change: transform;
+    }
+
+    /* Aurora Mesh Background */
+    .aurora-bg {
+      background-image: 
+        radial-gradient(at 10% 20%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 90% 10%, rgba(20, 184, 166, 0.15) 0px, transparent 50%),
+        radial-gradient(at 50% 80%, rgba(139, 92, 246, 0.12) 0px, transparent 55%),
+        radial-gradient(at 80% 90%, rgba(244, 63, 94, 0.08) 0px, transparent 40%);
+    }
+
+    /* Glass Surfaces */
+    .neo-glass {
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+    }
+    .neo-glass-card {
+      background: rgba(24, 33, 54, 0.55);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .neo-glass-subtle {
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Option Elimination Strikethrough Effect */
+    .eliminated-option {
+      opacity: 0.28 !important;
+      filter: grayscale(80%);
+      position: relative;
+      cursor: not-allowed !important;
+      transform: scale(0.985);
+      transition: all 0.25s ease;
+    }
+    .eliminated-option::after {
+      content: '';
+      position: absolute;
+      left: 3rem;
+      right: 3.5rem;
+      top: 50%;
+      height: 2px;
+      background: rgba(244, 63, 94, 0.85);
+      transform: translateY(-50%);
+      box-shadow: 0 0 8px rgba(244, 63, 94, 0.8);
+      pointer-events: none;
+    }
+
+    /* Keyframe Animations */
+    @keyframes gentleFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-4px); }
+    }
+    .animate-float {
+      animation: gentleFloat 4s ease-in-out infinite;
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.97) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0px); }
+    }
+    .animate-pop-in {
+      animation: popIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #070a13;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+  </style>
+</head>
+<body class="min-h-screen relative font-sans flex flex-col justify-between selection:bg-neon-indigo selection:text-white aurora-bg">
+
+  <!-- Interactive Canvas Particle Simulation & Cursor Follower -->
+  <canvas id="particleCanvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+  <div id="ambientGlow" class="ambient-glow hidden lg:block"></div>
+
+  <!-- STREAMING_CHUNK:Rendering Top Application Header with Navigation and Metrics... -->
+  <header class="relative z-30 w-full border-b border-slate-800/80 neo-glass sticky top-0 px-4 sm:px-8 py-3 shadow-2xl">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      
+      <!-- Logo & Master Brand Title -->
+      <div class="flex items-center space-x-3.5">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-neon-indigo via-neon-cyan to-neon-emerald flex items-center justify-center shadow-lg shadow-indigo-950/60 text-white font-extrabold text-xl border border-white/25">
+          <i class="fa-solid fa-atom animate-spin" style="animation-duration: 20s;"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg sm:text-xl font-bold font-display tracking-tight bg-gradient-to-r from-emerald-300 via-cyan-200 to-indigo-300 bg-clip-text text-transparent">
+              Biostatistics Grand Suite
+            </h1>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 uppercase tracking-widest font-mono">120 MCQs</span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">Modules: L1 (Measurement) • L2 (Descriptive) • L3 (Tables & Graphs) • L4 (Probability & Inference)</p>
+        </div>
+      </div>
+
+      <!-- Live Counters & Action Toolbar -->
+      <div class="flex items-center gap-2.5 sm:gap-4 text-sm">
+        
+        <!-- Module Quick-Filter Badge -->
+        <div class="hidden md:flex items-center space-x-1.5 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+          <i class="fa-solid fa-layer-group text-neon-teal"></i>
+          <span id="activeModuleHeaderLabel" class="font-semibold text-slate-300">All Modules</span>
+        </div>
+
+        <!-- Live Stopwatch -->
+        <div class="flex items-center space-x-2 bg-slate-900/90 px-3.5 py-1.5 rounded-xl border border-slate-800 shadow-inner">
+          <i class="fa-regular fa-clock text-neon-cyan animate-pulse"></i>
+          <span id="liveTimerDisplay" class="font-mono text-xs sm:text-sm font-semibold text-slate-200">00:00</span>
+        </div>
+
+        <!-- Live Score Counter -->
+        <div class="flex items-center space-x-2 bg-slate-900/90 px-3.5 py-1.5 rounded-xl border border-slate-800 shadow-inner">
+          <i class="fa-solid fa-bullseye text-neon-emerald"></i>
+          <span id="liveScoreDisplay" class="font-mono font-bold text-xs sm:text-sm text-neon-emerald">0 / 0</span>
+        </div>
+
+        <!-- Settings Modal Launcher -->
+        <button id="openSettingsModalBtn" class="px-3.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 text-slate-200 border border-slate-700/80 flex items-center gap-2 text-xs font-semibold transition active:scale-95 shadow">
+          <i class="fa-solid fa-sliders text-neon-indigo"></i>
+          <span class="hidden sm:inline">Suite Config</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- STREAMING_CHUNK:Rendering Configuration & Preferences Modal... -->
+  <div id="settingsBackdrop" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="neo-glass w-full max-w-xl rounded-3xl p-6 sm:p-8 border border-slate-700 shadow-2xl relative animate-pop-in">
+      
+      <div class="flex justify-between items-center pb-4 border-b border-slate-800">
+        <div>
+          <h3 class="text-lg font-bold font-display text-white flex items-center gap-2.5">
+            <i class="fa-solid fa-gears text-neon-cyan"></i> Examination Parameters
+          </h3>
+          <p class="text-xs text-slate-400">Configure question scope, elimination mechanics, and display modes.</p>
+        </div>
+        <button id="closeSettingsModalBtn" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-sm transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-5 text-sm mt-5 max-h-[75vh] overflow-y-auto pr-1">
+        
+        <!-- Lecture Module Filter -->
+        <div>
+          <label class="block text-slate-300 font-semibold mb-2 flex items-center justify-between">
+            <span>Select Lecture Domain:</span>
+            <span class="text-xs text-neon-indigo font-mono">120 Total Questions</span>
+          </label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <button type="button" class="module-filter-btn py-2.5 px-3 rounded-xl border-2 border-neon-indigo bg-indigo-500/20 text-indigo-200 font-bold text-xs text-left transition" data-module="ALL">
+              <i class="fa-solid fa-globe mr-1.5"></i> All Lectures (1-4)
+            </button>
+            <button type="button" class="module-filter-btn py-2.5 px-3 rounded-xl border border-slate-700 bg-slate-900/60 text-slate-300 font-medium text-xs text-left hover:border-slate-500 transition" data-module="L1">
+              <i class="fa-solid fa-scale-balanced mr-1.5 text-neon-emerald"></i> L1: Measurement
+            </button>
+            <button type="button" class="module-filter-btn py-2.5 px-3 rounded-xl border border-slate-700 bg-slate-900/60 text-slate-300 font-medium text-xs text-left hover:border-slate-500 transition" data-module="L2">
+              <i class="fa-solid fa-calculator mr-1.5 text-neon-cyan"></i> L2: Descriptive
+            </button>
+            <button type="button" class="module-filter-btn py-2.5 px-3 rounded-xl border border-slate-700 bg-slate-900/60 text-slate-300 font-medium text-xs text-left hover:border-slate-500 transition" data-module="L3">
+              <i class="fa-solid fa-chart-pie mr-1.5 text-neon-amber"></i> L3: Graphs & Tables
+            </button>
+            <button type="button" class="module-filter-btn py-2.5 px-3 rounded-xl border border-slate-700 bg-slate-900/60 text-slate-300 font-medium text-xs text-left hover:border-slate-500 transition" data-module="L4">
+              <i class="fa-solid fa-dice mr-1.5 text-neon-rose"></i> L4: Probability
+            </button>
+          </div>
+        </div>
+
+        <!-- Question Count Selector -->
+        <div>
+          <div class="flex justify-between items-center mb-2.5">
+            <label class="text-slate-300 font-semibold">Number of Questions to Practice:</label>
+            <span id="activeCountBadge" class="text-neon-cyan font-mono font-bold text-xs bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/30">30 Questions</span>
+          </div>
+          <div class="grid grid-cols-6 gap-2">
+            <button type="button" class="qcount-chip py-2 rounded-xl border border-slate-700 text-slate-300 font-semibold hover:border-neon-cyan text-center transition" data-num="10">10</button>
+            <button type="button" class="qcount-chip py-2 rounded-xl border border-slate-700 text-slate-300 font-semibold hover:border-neon-cyan text-center transition" data-num="20">20</button>
+            <button type="button" class="qcount-chip py-2 rounded-xl border-2 border-neon-cyan bg-cyan-500/20 text-cyan-200 font-bold text-center transition" data-num="30">30</button>
+            <button type="button" class="qcount-chip py-2 rounded-xl border border-slate-700 text-slate-300 font-semibold hover:border-neon-cyan text-center transition" data-num="50">50</button>
+            <button type="button" class="qcount-chip py-2 rounded-xl border border-slate-700 text-slate-300 font-semibold hover:border-neon-cyan text-center transition" data-num="75">75</button>
+            <button type="button" class="qcount-chip py-2 rounded-xl border border-slate-700 text-slate-300 font-semibold hover:border-neon-cyan text-center transition" data-num="ALL">Max</button>
+          </div>
+        </div>
+
+        <!-- Mode selector: Single vs Full List -->
+        <div>
+          <label class="block text-slate-300 font-semibold mb-2">Display Layout Mode</label>
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" id="setSingleCardModeBtn" class="p-3 rounded-2xl border-2 border-neon-indigo bg-indigo-500/20 text-white font-semibold flex items-center justify-center gap-2 transition">
+              <i class="fa-regular fa-window-maximize"></i> Single Card Mode
+            </button>
+            <button type="button" id="setListModeBtn" class="p-3 rounded-2xl border border-slate-700 bg-slate-900/60 text-slate-400 font-medium flex items-center justify-center gap-2 hover:border-slate-500 transition">
+              <i class="fa-solid fa-list-check"></i> Full List View
+            </button>
+          </div>
+        </div>
+
+        <!-- Toggles -->
+        <div class="space-y-2.5 pt-1">
+          <!-- Instant Reveal -->
+          <label class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 cursor-pointer hover:bg-slate-800/60 transition">
+            <span class="flex flex-col">
+              <span class="font-semibold text-slate-200">Instant Answer Reveal</span>
+              <span class="text-xs text-slate-400">Shows green/red feedback & slide rationale immediately upon click</span>
+            </span>
+            <input type="checkbox" id="instantRevealCheckbox" checked class="w-5 h-5 accent-neon-indigo rounded cursor-pointer">
+          </label>
+
+          <!-- Shuffle Questions -->
+          <label class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 cursor-pointer hover:bg-slate-800/60 transition">
+            <span class="flex flex-col">
+              <span class="font-semibold text-slate-200">Shuffle Questions</span>
+              <span class="text-xs text-slate-400">Randomize question order on quiz restart</span>
+            </span>
+            <input type="checkbox" id="shuffleQuestionsCheckbox" checked class="w-5 h-5 accent-neon-indigo rounded cursor-pointer">
+          </label>
+
+          <!-- Shuffle Choices -->
+          <label class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 cursor-pointer hover:bg-slate-800/60 transition">
+            <span class="flex flex-col">
+              <span class="font-semibold text-slate-200">Shuffle Option Choices</span>
+              <span class="text-xs text-slate-400">Randomize A, B, C, D order inside questions</span>
+            </span>
+            <input type="checkbox" id="shuffleChoicesCheckbox" checked class="w-5 h-5 accent-neon-indigo rounded cursor-pointer">
+          </label>
+
+          <!-- Canvas & Cursor Glow -->
+          <label class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 cursor-pointer hover:bg-slate-800/60 transition">
+            <span class="flex flex-col">
+              <span class="font-semibold text-slate-200">Particle Background & Cursor Trailer</span>
+              <span class="text-xs text-slate-400">Ambient physics particle animation & interactive follower</span>
+            </span>
+            <input type="checkbox" id="toggleParticlesCheckbox" checked class="w-5 h-5 accent-neon-indigo rounded cursor-pointer">
+          </label>
+        </div>
+
+        <button id="applyPreferencesBtn" class="w-full py-3.5 bg-gradient-to-r from-neon-indigo via-neon-cyan to-neon-emerald text-white font-bold rounded-2xl shadow-lg shadow-indigo-950/50 hover:opacity-95 transition active:scale-98">
+          Apply Configuration & Restart Exam
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- STREAMING_CHUNK:Rendering Main View Area and Control Buttons... -->
+  <main class="relative z-10 flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
+
+    <!-- Progress & Module Tracker (Single Card Mode) -->
+    <div id="singleCardHeaderSection" class="mb-5 space-y-3">
+      <div class="flex items-center justify-between text-xs sm:text-sm font-semibold">
+        <span class="text-slate-300 flex items-center gap-2">
+          <span>Question <span id="currentCardNumberBadge" class="text-neon-cyan font-bold font-mono text-base">1</span> of <span id="totalQuestionsBadge" class="text-slate-400 font-mono">30</span></span>
+        </span>
+        <div class="flex items-center gap-2">
+          <span id="eliminationStatusBadge" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-rose-500/10 text-rose-300 border border-rose-500/25 text-[11px] font-mono">
+            <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> 50:50 Eliminator Ready
+          </span>
+          <span id="answeredCounterBadge" class="text-slate-400 font-mono">0 Answered</span>
+        </div>
+      </div>
+
+      <!-- Linear Progress Bar -->
+      <div class="w-full bg-slate-900/90 rounded-full h-2.5 overflow-hidden border border-slate-800 shadow-inner">
+        <div id="linearProgressBar" class="bg-gradient-to-r from-neon-indigo via-neon-cyan to-neon-emerald h-2.5 rounded-full transition-all duration-300" style="width: 3.33%;"></div>
+      </div>
+
+      <!-- Quick Jump Navigator Dots -->
+      <div id="dotsNavigator" class="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 px-1 scrollbar-none">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- VIEW 1: Single Card Display Mode -->
+    <div id="singleCardContainer" class="space-y-5">
+      <div id="activeQuestionCard" class="neo-glass p-6 sm:p-9 rounded-3xl shadow-2xl border border-slate-700/80 transition-all duration-300 animate-pop-in">
+        <!-- Injected dynamically -->
+      </div>
+
+      <!-- Bottom Navigation and Tool Controls -->
+      <div class="flex items-center justify-between gap-2 sm:gap-3 pt-2">
+        
+        <button id="navPrevBtn" class="px-4 sm:px-5 py-2.5 rounded-2xl border border-slate-800 bg-slate-900/90 text-slate-300 font-semibold hover:bg-slate-800 transition flex items-center gap-2 text-xs sm:text-sm disabled:opacity-30 disabled:cursor-not-allowed">
+          <i class="fa-solid fa-chevron-left text-xs"></i> <span class="hidden sm:inline">Previous</span>
+        </button>
+
+        <!-- Utility Buttons: 50/50 Eliminator, Reset, Finish -->
+        <div class="flex items-center gap-2">
+          <button id="eliminateTwoOptionsBtn" title="Eliminate 2 incorrect choices" class="px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-rose-500/20 to-purple-500/20 border border-rose-500/40 text-rose-300 hover:border-rose-400 hover:text-white font-bold text-xs sm:text-sm transition flex items-center gap-1.5 shadow-sm active:scale-95">
+            <i class="fa-solid fa-wand-magic-sparkles text-neon-rose"></i>
+            <span>50:50</span>
+          </button>
+
+          <button id="quickResetBtn" title="Reset current answers" class="p-2.5 rounded-2xl border border-slate-800 bg-slate-900/80 text-slate-400 hover:text-rose-400 hover:border-rose-500/50 transition">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+          
+          <button id="finishReviewBtn" class="px-3.5 sm:px-4 py-2.5 rounded-2xl bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/25 font-bold text-xs sm:text-sm transition">
+            Finish
+          </button>
+        </div>
+
+        <button id="navNextBtn" class="px-5 sm:px-6 py-2.5 rounded-2xl bg-gradient-to-r from-neon-indigo to-neon-cyan text-white font-bold shadow-lg shadow-indigo-950/40 hover:opacity-95 transition flex items-center gap-2 text-xs sm:text-sm">
+          <span>Next</span> <i class="fa-solid fa-chevron-right text-xs"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- VIEW 2: Full List Display Mode -->
+    <div id="fullListContainer" class="space-y-6 hidden">
+      <div class="neo-glass p-5 rounded-2xl flex flex-wrap items-center justify-between gap-3 border border-slate-800">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2 font-display">
+            <i class="fa-solid fa-list-check text-neon-cyan"></i> Comprehensive Question Overview
+          </h2>
+          <p class="text-xs text-slate-400">Answer questions in any sequence. Use manual or instant elimination tools.</p>
+        </div>
+        <button id="submitAllListBtn" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-neon-indigo to-neon-emerald text-white font-bold text-xs sm:text-sm hover:opacity-95 shadow-md transition">
+          Submit Final Exam
+        </button>
+      </div>
+
+      <div id="listItemsMount" class="space-y-5">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+
+    <!-- VIEW 3: Final Results & Analysis Card -->
+    <div id="resultsCardView" class="neo-glass p-6 sm:p-10 rounded-3xl border border-indigo-500/40 shadow-2xl hidden animate-pop-in">
+      <div class="text-center space-y-5">
+        
+        <div class="w-20 h-20 rounded-3xl bg-indigo-500/15 border-2 border-indigo-400 mx-auto flex items-center justify-center text-neon-cyan text-3xl shadow-xl shadow-indigo-500/20 animate-float">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold font-display text-white">Examination Diagnostics</h2>
+          <p class="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto mt-1">
+            Comprehensive Mastery Report for Health Science & Nursing Biostatistics (L1 through L4).
+          </p>
+        </div>
+
+        <!-- Metric Tiles -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-2 max-w-2xl mx-auto">
+          <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
+            <span class="text-xs text-slate-400 block font-medium">Final Score</span>
+            <span id="finalScoreVal" class="text-2xl font-black text-neon-emerald font-mono">0 / 30</span>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
+            <span class="text-xs text-slate-400 block font-medium">Accuracy</span>
+            <span id="finalAccuracyVal" class="text-2xl font-black text-neon-cyan font-mono">0%</span>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
+            <span class="text-xs text-slate-400 block font-medium">Duration</span>
+            <span id="finalTimeVal" class="text-2xl font-black text-neon-amber font-mono">00:00</span>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
+            <span class="text-xs text-slate-400 block font-medium">Completed</span>
+            <span id="finalAnsweredVal" class="text-2xl font-black text-neon-violet font-mono">30 / 30</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Feedback Advice Box -->
+        <div id="performanceFeedbackBox" class="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-200 text-sm font-semibold max-w-xl mx-auto">
+          Assessment analysis complete.
+        </div>
+
+        <!-- Action buttons -->
+        <div class="pt-4 flex flex-wrap justify-center gap-3.5">
+          <button id="reviewListFromResultsBtn" class="px-5 py-2.5 rounded-2xl bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 text-sm font-semibold transition">
+            <i class="fa-solid fa-rectangle-list mr-2 text-neon-cyan"></i> Inspect Full Breakdown
+          </button>
+          <button id="retakeQuizBtn" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-neon-indigo via-neon-cyan to-neon-emerald text-white font-bold text-sm hover:shadow-lg transition">
+            <i class="fa-solid fa-arrow-rotate-left mr-2"></i> Retake Practice Exam
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Sticky Reference Bar Footer -->
+  <footer class="relative z-20 w-full border-t border-slate-800/80 neo-glass py-3 px-4 text-center text-xs text-slate-400">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+      <span class="flex items-center gap-2">
+        <i class="fa-solid fa-book-bookmark text-neon-indigo"></i>
+        <span>Biostatistics Curriculum • <strong>L1 (Measurement)</strong>, <strong>L2 (Descriptive)</strong>, <strong>L3 (Graphs & Tables)</strong>, <strong>L4 (Inference & Probability)</strong></span>
+      </span>
+      <span class="text-slate-400 font-mono">Use 50:50 or click strike icon to eliminate answers</span>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Bar -->
+  <div id="toastNotification" class="fixed bottom-6 right-6 z-50 neo-glass border border-neon-indigo/40 text-slate-200 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-neon-emerald text-base"></i>
+    <span id="toastMessageText" class="text-xs sm:text-sm font-semibold">Notification</span>
+  </div>
+
+  <!-- STREAMING_CHUNK:Initializing 120-question Master Question Bank (L1 to L4)... -->
+  <script>
+    /**
+     * 120 High-Yield MCQs derived directly from:
+     * - L1: Introduction to Biostatistics & Level of Measurement (30 MCQs)
+     * - L2: Descriptive Statistics Part 1: Numerical Representation, Central Tendency & Dispersion (30 MCQs)
+     * - L3: Descriptive Statistics Part 2: Tabular & Graphical Representation (30 MCQs)
+     * - L4: Probability, Risk, Odds, Distributions & Statistical Inference (30 MCQs)
+     */
+    const MASTER_QUESTIONS = [
+      /* ============================================================
+         MODULE 1 (L1): INTRODUCTION & LEVELS OF MEASUREMENT (1-30)
+         ============================================================ */
+      {
+        id: 101, module: "L1", category: "Definitions",
+        question: "How is 'Statistics' defined in Lecture 1, and what is the specific term for its application in the health sciences?",
+        options: [
+          "The theoretical branch of pure mathematics; known as Clinical Arithmetic",
+          "The science dealing with data collection, classification, analysis, interpretation, and presentation; known as Biostatistics",
+          "The clinical protocol for administering drug therapies; known as Pharmacology",
+          "The study of hospital organizational workflows; known as Health Informatics"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 4 defines statistics as 'The science that deals with the collection, classification, analysis, interpretation and presentation of data. Application of this knowledge in health sciences is known as Biostatistics.'"
+      },
+      {
+        id: 102, module: "L1", category: "Branches of Biostatistics",
+        question: "Which branch of biostatistics is concerned with producing quantitative summaries of information through tabulation, graphs, and central tendency?",
+        options: [
+          "Inferential Biostatistics",
+          "Predictive Machine Modeling",
+          "Descriptive Biostatistics",
+          "Hypothetical Induction"
+        ],
+        answer: 2,
+        explanation: "L1 Slide 6 states that Descriptive Biostatistics involves methods of producing quantitative summaries of information in health sciences via tabulation, graphical presentation, and measures of central tendency and dispersion."
+      },
+      {
+        id: 103, module: "L1", category: "Branches of Biostatistics",
+        question: "Inferential biostatistics makes generalizations about a population based on a sample primarily through which two techniques?",
+        options: [
+          "Tabulation and bar plotting",
+          "Estimation and hypothesis testing",
+          "Data cleaning and code checking",
+          "Standardization and mode calculation"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 6 explicitly notes that Inferential Biostatistics is 'primarily performed in two ways: Estimation and Testing of hypothesis.'"
+      },
+      {
+        id: 104, module: "L1", category: "Key Terminology",
+        question: "In biostatistical terminology, what is an 'Observation' (L1 Slide 7)?",
+        options: [
+          "The overall census of all patients in a medical center",
+          "The unit upon which measurements are made (e.g., individual smoking pack-years)",
+          "Any quantitative formula used in statistical calculators",
+          "The final research report submitted to a journal"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 7 defines Observation: 'refers to the unit upon which measurements are made (e.g., smoking habits of an individual in pack-years, or a region in per capita consumption).'"
+      },
+      {
+        id: 105, module: "L1", category: "Key Terminology",
+        question: "How does a 'Population' differ from a 'Sample' in clinical study design (L1 Slide 7)?",
+        options: [
+          "A population is collected using surveys, while a sample is collected only in laboratories",
+          "A population contains all subjects of interest; a sample is a collected subset of that population",
+          "A population must have fewer than 100 individuals, while a sample has thousands",
+          "A population represents qualitative data, while a sample represents numerical data"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 7: 'Population: all the subjects of interest. Sample: a subset of the population for which data are collected.'"
+      },
+      {
+        id: 106, module: "L1", category: "Study Analysis",
+        question: "In the Framingham Heart Study example (L1 Slide 10), what was the size of the examined participant sample?",
+        options: [
+          "N = 500",
+          "N = 1,000",
+          "N = 4,434 participants",
+          "N = 50,000 participants"
+        ],
+        answer: 2,
+        explanation: "L1 Slide 10 highlights: 'N = 4,434 participants (subset of original sample), follow-up 1956–1968, longitudinal data with 11,627 total observations.'"
+      },
+      {
+        id: 107, module: "L1", category: "Data Types",
+        question: "Which of the following describes 'Numerical (Quantitative)' data?",
+        options: [
+          "Arbitrary words or labels used solely for grouping",
+          "Numbers with real numerical meaning representing measurements obtained from sample elements",
+          "Coding identifiers that cannot be added, subtracted, or averaged",
+          "Subjective verbal responses in patient interviews"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 17 defines Numerical data as 'numbers (with real meaning), representing measurements, obtained from sample elements.'"
+      },
+      {
+        id: 108, module: "L1", category: "Data Types",
+        question: "What is the defining characteristic of a 'Discrete' quantitative variable?",
+        options: [
+          "It can assume any decimal value within a continuum",
+          "It consists of countable values (whole numbers), such as number of patient falls or children",
+          "It only measures temperature and physical distance",
+          "It has no order or magnitude"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 17: 'Discrete: Countable (how many). Number of children, number of falls. We cannot say one child and a half.'"
+      },
+      {
+        id: 109, module: "L1", category: "Data Types",
+        question: "Which clinical variable is classified as 'Continuous' numerical data (L1 Slide 17)?",
+        options: [
+          "Number of hospital admissions in one year",
+          "Patient weight, height, or blood sugar level",
+          "Number of tablets taken in the morning",
+          "Total count of infected surgical sutures"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 17 explains that continuous data are uncountable measurements ('how much') that can take any value within a range including decimals (e.g., age, weight, height, blood sugar)."
+      },
+      {
+        id: 110, module: "L1", category: "Scales of Measurement",
+        question: "What are the four scales of measurement for variables in order of increasing information content?",
+        options: [
+          "Binary, Frequency, Average, Percentile",
+          "Nominal, Ordinal, Interval, Ratio",
+          "Discrete, Continuous, Skewed, Symmetric",
+          "Qualitative, Quantitative, Parametric, Non-parametric"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 20 lists the four fundamental levels of measurement: 1. Nominal, 2. Ordinal, 3. Interval, 4. Ratio."
+      },
+      {
+        id: 111, module: "L1", category: "Nominal Scale",
+        question: "What is the term for a nominal variable that contains exactly two mutually exclusive categories (e.g., Dead/Alive, Yes/No)?",
+        options: [
+          "Interval variable",
+          "Dichotomous or Binary data",
+          "Bimodal continuous variable",
+          "Polytomous ordinal scale"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 21 states: 'It can be two groups only and called Dichotomous or Binary Data (e.g., Dead or alive, True or false, Yes or no).'"
+      },
+      {
+        id: 112, module: "L1", category: "Nominal Scale",
+        question: "Which of the following is an example of a Nominal variable with more than two groups (L1 Slide 21)?",
+        options: [
+          "Blood group (A, B, O, AB)",
+          "Pain severity (Mild, Moderate, Severe)",
+          "Body temperature in Celsius",
+          "Length of stay in days"
+        ],
+        answer: 0,
+        explanation: "L1 Slide 21 lists ABO blood groups, eye colors, and race/ethnicity as unordered nominal categories."
+      },
+      {
+        id: 113, module: "L1", category: "Ordinal Scale",
+        question: "What critical property distinguishes Ordinal data from Nominal data (L1 Slide 22)?",
+        options: [
+          "Ordinal categories possess an absolute true zero point",
+          "Ordinal categories have a natural and meaningful order, but differences between levels are not equal",
+          "Ordinal categories are measured on continuous metric rulers",
+          "Ordinal data can never be summarized using frequencies"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 22 highlights: 'Same as nominal data except that the groups have a natural and meaningful order. BUT differences between groups are not considered equal.'"
+      },
+      {
+        id: 114, module: "L1", category: "Ordinal Scale",
+        question: "Which of the following is a classic example of an Ordinal measurement in nursing?",
+        options: [
+          "Patient blood type (O, A, B, AB)",
+          "Disease severity (Mild, Moderate, Severe) or a 5-point Likert agreement scale",
+          "Patient weight in kilograms",
+          "Heart rate in beats per minute"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 22 provides disease severity (mild/mod/severe), educational levels, and Likert scales as prime examples of ordinal data."
+      },
+      {
+        id: 115, module: "L1", category: "Interval Scale",
+        question: "Why is Temperature in Celsius or Fahrenheit classified as 'Interval' rather than 'Ratio' (L1 Slide 23 & 25)?",
+        options: [
+          "It has no mathematical order",
+          "The spacing between degrees is unequal",
+          "Zero degrees does not represent a true absolute absence of heat, and negative temperatures exist",
+          "It is a discrete countable variable"
+        ],
+        answer: 2,
+        explanation: "L1 Slide 23 & 25 explain that Celsius/Fahrenheit has equal intervals but no true zero ($0^\circ\text{C}$ does not mean 'no temperature'), making ratios invalid."
+      },
+      {
+        id: 116, module: "L1", category: "Ratio Scale",
+        question: "What is the defining requirement for a measurement scale to be classified as 'Ratio' (L1 Slide 24)?",
+        options: [
+          "It must consist only of whole numbers",
+          "It has equal intervals between values AND an absolute/true zero representing total absence of the quantity",
+          "It must have non-meaningful ratios between values",
+          "It only applies to subjective questionnaires"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 24 states that ratio data has equal intervals, a true zero (0 = complete absence), and meaningful ratios (e.g., 80 kg is twice as heavy as 40 kg)."
+      },
+      {
+        id: 117, module: "L1", category: "Level of Measurement",
+        question: "How does 'Exact age in years' (e.g., 21, 34, 63) differ in measurement level from 'Age groups' (e.g., 20-29, 30-39) (L1 Slide 26)?",
+        options: [
+          "Exact age is nominal; age groups are ratio",
+          "Exact age is ratio; age groups become ordinal because exact distances between individuals are lost",
+          "Exact age is interval; age groups are qualitative binary",
+          "Both are mathematically identical ratio scales"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 26 notes: Exact age is Ratio, but grouped age categories (20-29, 30-39) become Ordinal because individuals are grouped into ordered bins where exact distances are lost."
+      },
+      {
+        id: 118, module: "L1", category: "Measurement Comparison",
+        question: "According to the summary table on Slide 27, which level of measurement has categories, meaningful order, equal intervals, AND a true zero?",
+        options: [
+          "Nominal",
+          "Ordinal",
+          "Interval",
+          "Ratio"
+        ],
+        answer: 3,
+        explanation: "L1 Slide 27 summary table: Ratio has checkmarks for Categories, Ordered, Equal intervals, and True zero."
+      },
+      {
+        id: 119, module: "L1", category: "Exercise Classification",
+        question: "In the exercise on Slide 30, what are the type and level of measurement for 'Patient satisfaction (Poor/Fair/Good/Excellent)'?",
+        options: [
+          "Numerical continuous; Ratio",
+          "Categorical; Ordinal",
+          "Categorical; Nominal",
+          "Numerical discrete; Interval"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 30 classifies Patient Satisfaction (Poor/Fair/Good/Excellent) as Categorical type and Ordinal level."
+      },
+      {
+        id: 120, module: "L1", category: "Exercise Classification",
+        question: "In the exercise on Slide 30, what are the type and level of measurement for 'Number of medications'?",
+        options: [
+          "Numerical discrete; Ratio",
+          "Numerical continuous; Interval",
+          "Categorical; Nominal",
+          "Categorical; Ordinal"
+        ],
+        answer: 0,
+        explanation: "L1 Slide 30 classifies 'Number of medications' as Numerical discrete type and Ratio level (0 medications = none)."
+      },
+      {
+        id: 121, module: "L1", category: "Exercise Classification",
+        question: "In Slide 30, what are the type and level of measurement for a grouped 'Pain score (0-3, 4-6, 7-10)'?",
+        options: [
+          "Categorical; Ordinal",
+          "Numerical continuous; Ratio",
+          "Categorical; Nominal",
+          "Numerical continuous; Interval"
+        ],
+        answer: 0,
+        explanation: "L1 Slide 30 classifies grouped pain scores (0-3, 4-6, 7-10) as Categorical type and Ordinal level."
+      },
+      {
+        id: 122, module: "L1", category: "Slide Quiz",
+        question: "Which of the following is an example of descriptive biostatistics (L1 Slide 31 Quiz Question 1)?",
+        options: [
+          "Testing a hypothesis regarding a new vaccine",
+          "Estimating population parameters from confidence intervals",
+          "Predicting mortality in an unstudied population",
+          "Calculating the central tendency of a sample characteristics"
+        ],
+        answer: 3,
+        explanation: "L1 Slide 31 (and answer slide 34): '1.D - Calculating the central tendency of a sample characteristics' is descriptive biostatistics."
+      },
+      {
+        id: 123, module: "L1", category: "Slide Quiz",
+        question: "Which of the following is a categorical variable (L1 Slide 32 Quiz Question 2)?",
+        options: [
+          "Weight",
+          "Height",
+          "Blood group",
+          "Blood glucose level"
+        ],
+        answer: 2,
+        explanation: "L1 Slide 32 (and answer slide 34): '2.C - Blood group' is a categorical variable. Weight, height, and glucose are numerical."
+      },
+      {
+        id: 124, module: "L1", category: "Slide Quiz",
+        question: "Which feature distinguishes ordinal data from nominal data (L1 Slide 33 Quiz Question 3)?",
+        options: [
+          "Ordinal data have a true zero",
+          "Ordinal categories have a meaningful order",
+          "Ordinal data must be continuous",
+          "Ordinal data have equal intervals"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 33 (and answer slide 34): '3.B - Ordinal categories have a meaningful order.'"
+      },
+      {
+        id: 125, module: "L1", category: "Data Types",
+        question: "Why can't the arithmetic mean be meaningfully calculated for nominal variables like religion or eye color?",
+        options: [
+          "Nominal categories have infinite variance",
+          "The labels have no intrinsic mathematical quantity or distance",
+          "Software formulas reject text strings automatically",
+          "Nominal data can only be analyzed using integral calculus"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 18 & L2 Slide 15 state that categorical nominal labels have no real numerical meaning, so summing and dividing them is mathematically invalid."
+      },
+      {
+        id: 126, module: "L1", category: "Key Terminology",
+        question: "In the data collection form shown on Slide 8, what do VAR1 (First name), VAR2 (Last name), VAR3 (Gender), VAR4 (Age at death), and VAR5 (Field of study) represent?",
+        options: [
+          "Observations",
+          "Variables",
+          "Hypotheses",
+          "Populations"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 8 & 9 show that VAR1 through VAR5 represent the measured characteristics, which are the 'Variables'."
+      },
+      {
+        id: 127, module: "L1", category: "Key Terminology",
+        question: "In that same data collection form (Slide 8 & 9), what do John Snow, William Farr, Joseph Goldberger, and Janet Lane-Claypon represent?",
+        options: [
+          "Four separate observations / subjects",
+          "Four statistical populations",
+          "Four confidence intervals",
+          "Four discrete histograms"
+        ],
+        answer: 0,
+        explanation: "L1 Slide 8 & 9 illustrate four individual records, representing four distinct observations or subjects."
+      },
+      {
+        id: 128, module: "L1", category: "Study Design",
+        question: "In the Framingham Study dataset (Slide 11-14), what type of variable is 'Current smoking status (yes/no)'?",
+        options: [
+          "Categorical binary / dichotomous (Nominal)",
+          "Numerical continuous (Ratio)",
+          "Numerical discrete (Interval)",
+          "Ordered polychotomous (Ordinal)"
+        ],
+        answer: 0,
+        explanation: "Yes/No smoking status has two unordered groups: it is a binary/dichotomous nominal variable."
+      },
+      {
+        id: 129, module: "L1", category: "Study Design",
+        question: "In the Framingham Study dataset, what type of variable is 'Average number of cigarettes smoked per day'?",
+        options: [
+          "Categorical nominal",
+          "Categorical ordinal",
+          "Numerical discrete (Ratio level)",
+          "Numerical continuous (Interval level)"
+        ],
+        answer: 2,
+        explanation: "Cigarettes per day is a countable whole number with a true zero (0 cigarettes = non-smoker), classifying it as numerical discrete at the ratio level."
+      },
+      {
+        id: 130, module: "L1", category: "Statistical Process",
+        question: "According to Slide 5, what is the crucial initial step in any complete and accurate statistical analysis?",
+        options: [
+          "Computing the standard deviation",
+          "Stating a valid research question",
+          "Eliminating all outliers above 3 standard deviations",
+          "Drawing a frequency polygon"
+        ],
+        answer: 1,
+        explanation: "L1 Slide 5 lists Step 1: 'State a valid research question' before data collection, cleaning, exploratory analysis, and inference."
+      },
+
+      /* ============================================================
+         MODULE 2 (L2): NUMERICAL DESCRIPTIVE STATISTICS (31-60)
+         ============================================================ */
+      {
+        id: 201, module: "L2", category: "Central Tendency",
+        question: "What are the three primary measures of central location described in Lecture 2 (Slide 9)?",
+        options: [
+          "Range, IQR, and Standard Deviation",
+          "Mean, Median, and Mode",
+          "Skewness, Kurtosis, and Variance",
+          "Frequency, Relative Frequency, and Percentage"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 9 states: 'There are three main measures of central tendency: Mean, Mode, Median.'"
+      },
+      {
+        id: 202, module: "L2", category: "Arithmetic Mean",
+        question: "For the male weekly exercise time dataset (Slide 12: 0.0, 1.5, 1.0, 1.0, 1.5, 1.0, 0.5, 2.5, 1.5, 2.0, 2.0; sum = 14.5, n = 11), what is the arithmetic mean?",
+        options: [
+          "1.00 hours",
+          "1.32 hours",
+          "1.50 hours",
+          "1.80 hours"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 12: Mean = Sum / n = 14.5 / 11 = 1.32 hours."
+      },
+      {
+        id: 203, module: "L2", category: "Arithmetic Mean",
+        question: "In Slide 14, an outlier of 30.0 hours is added to the 11 male values (Sum = 44.5, n = 12). What is the new mean and what does this demonstrate?",
+        options: [
+          "Mean remains 1.32; mean is resistant to outliers",
+          "Mean becomes 3.7 hours; the mean is heavily affected and distorted by extreme values",
+          "Mean drops to 0.5 hours; outliers always deflate the average",
+          "Mean cannot be calculated when an outlier is present"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 14 & 15: New mean = 44.5 / 12 = 3.7 hrs. 'Note: the value 30 is extreme data (outlier affects the mean).' The mean is sensitive to extreme values."
+      },
+      {
+        id: 204, module: "L2", category: "Median",
+        question: "How is the Median defined in descriptive statistics (L2 Slide 16)?",
+        options: [
+          "The most commonly occurring value in the sample",
+          "The value below which 50% of observations lie and above which 50% lie (the middle value)",
+          "The midpoint between the minimum and maximum values",
+          "The square root of the variance"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 16 defines the median as 'the value below which 50% of observations lie, and above which 50% of observations lie. i.e. the middle value of the observations.'"
+      },
+      {
+        id: 205, module: "L2", category: "Median Calculation",
+        question: "In the retirement age dataset with 11 observations (Slide 18: 54, 54, 54, 55, 56, 57, 57, 58, 58, 60, 60), which position and value represent the median?",
+        options: [
+          "5th observation = 56 years",
+          "6th observation = 57 years",
+          "7th observation = 58 years",
+          "Average of 54 and 60 = 57 years"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 18: Median position = (n + 1)/2 = (11 + 1)/2 = 6th observation. The 6th value in the ordered array is 57 years."
+      },
+      {
+        id: 206, module: "L2", category: "Median Calculation",
+        question: "When a sample has an even number of observations (e.g., n = 12 retirement ages with 6th value = 56 and 7th value = 57 in Slide 19), how is the median determined?",
+        options: [
+          "Take the lower value (56)",
+          "Take the upper value (57)",
+          "Take the mean of the two middle values: (56 + 57)/2 = 56.5 years",
+          "The median is undefined for even sample sizes"
+        ],
+        answer: 2,
+        explanation: "L2 Slide 19: For an even number of values, take the mean of the two middle values: (56 + 57) / 2 = 56.5 years."
+      },
+      {
+        id: 207, module: "L2", category: "Mode",
+        question: "In the male exercise dataset (Slide 24: 0.0, 0.5, 1.0, 1.0, 1.0, 1.5, 1.5, 1.5, 2.0, 2.0, 2.5), what is the mode?",
+        options: [
+          "Unimodal with mode 1.0",
+          "Unimodal with mode 1.5",
+          "Bimodal with two modes: 1.0 and 1.5 hours (each occurring 3 times)",
+          "No mode exists"
+        ],
+        answer: 2,
+        explanation: "L2 Slide 24 shows that 1.0 and 1.5 each appear three times. The dataset is bimodal with modes 1.0 and 1.5 hours."
+      },
+      {
+        id: 208, module: "L2", category: "Measures of Center",
+        question: "Which measure of central tendency has the distinct advantage of being applicable to both numerical and categorical data (L2 Slide 25)?",
+        options: [
+          "Arithmetic Mean",
+          "Median",
+          "Mode",
+          "Interquartile Range"
+        ],
+        answer: 2,
+        explanation: "L2 Slide 25: 'The mode has an advantage over the median and the mean as it can be found for both numerical and categorical data.'"
+      },
+      {
+        id: 209, module: "L2", category: "Measures of Variability",
+        question: "What are the four common measures of variability (dispersion) highlighted on Slide 26?",
+        options: [
+          "Mean, Median, Mode, and Frequency",
+          "Range, Interquartile Range (IQR), Variance, and Standard Deviation",
+          "Relative frequency, Odds, Proportion, and Percent",
+          "Minimum, Q1, Median, and Maximum"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 26 lists: 'There are four common measures of variability: Range, Interquartile Range (IQR), Variance, Standard Deviation.'"
+      },
+      {
+        id: 210, module: "L2", category: "Range",
+        question: "In the female exercise dataset (Slide 28), values ranged from 0.0 to 13.0 hours. What is the Range?",
+        options: [
+          "0.5 hours",
+          "6.5 hours",
+          "13.0 hours (13.0 - 0.0)",
+          "1.8 hours"
+        ],
+        answer: 2,
+        explanation: "L2 Slide 28: Range = Maximum - Minimum = 13.0 - 0.0 = 13.0 hours."
+      },
+      {
+        id: 211, module: "L2", category: "IQR",
+        question: "What does the Interquartile Range (IQR) represent regarding the distribution of data (L2 Slide 29)?",
+        options: [
+          "The difference between the absolute maximum and minimum",
+          "The variation or spread for the middle 50% of the data (75th percentile minus 25th percentile)",
+          "The average distance of all points from the mean",
+          "The 95% confidence interval for the sample mean"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 29 states: 'IQR is the range between the 25th and 75th percentiles (or upper and lower quartiles). IQR represent variation for middle 50% of data.'"
+      },
+      {
+        id: 212, module: "L2", category: "IQR Calculation",
+        question: "In the male exercise dataset (Slide 31), Q1 = 1.0 hour and Q3 = 2.0 hours. What is the calculated IQR?",
+        options: [
+          "0.5 hours",
+          "1.0 hour (2.0 - 1.0)",
+          "1.5 hours",
+          "2.5 hours"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 31: IQR = 3rd quartile - 1st quartile = 2.0 - 1.0 = 1.0 hour."
+      },
+      {
+        id: 213, module: "L2", category: "Variance",
+        question: "How is 'Variance' formally defined in biostatistics (L2 Slide 33)?",
+        options: [
+          "The difference between the median and the mode",
+          "The average squared deviation of observations from the mean",
+          "The ratio of the standard error to the sample size",
+          "The sum of all values divided by n"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 33: 'Variance measures the average squared deviation of observations from the mean.'"
+      },
+      {
+        id: 214, module: "L2", category: "Standard Deviation",
+        question: "What is the mathematical relationship between the Standard Deviation (sd) and the Variance (L2 Slide 34 & 36)?",
+        options: [
+          "Standard deviation is variance multiplied by 2",
+          "Standard deviation is the square root of the variance ($sd = \\sqrt{\\text{variance}}$)",
+          "Standard deviation is variance divided by degrees of freedom",
+          "Standard deviation is the square of the variance"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 34 & 36: Standard deviation is the square root of the variance ($sd = \\sqrt{\\text{variance}}$, or $\\text{variance} = sd^2$)."
+      },
+      {
+        id: 215, module: "L2", category: "Standard Deviation Interpretation",
+        question: "What does a large Standard Deviation indicate about a dataset compared to a small standard deviation (L2 Slide 35)?",
+        options: [
+          "Large SD means the sample size was too small to compute means",
+          "Large SD shows a wide scatter of measured values around the mean; small SD shows values concentrated tightly around the mean",
+          "Large SD proves the data are perfectly symmetric",
+          "Large SD means there is no variation among subjects"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 35: 'A large standard deviation shows that there is a wide scatter of measured values around the mean, while a small standard deviation shows that individual values are concentrated around the mean with little variation.'"
+      },
+      {
+        id: 216, module: "L2", category: "Pairing Rules",
+        question: "According to Slide 37, how should measures of center and variability be appropriately paired in research reports?",
+        options: [
+          "Mean must always be paired with Range",
+          "Approximately symmetric data: Mean + SD; Skewed data: Median + IQR",
+          "Median must always be paired with Variance",
+          "Mode must always be paired with Standard Error"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 37 states: 'Approximately symmetric data $\\rightarrow$ Mean + SD; Skewed data $\\rightarrow$ Median + IQR.'"
+      },
+      {
+        id: 217, module: "L2", category: "Normal Distribution",
+        question: "Under the Empirical Rule for a normal distribution, approximately what percentage of observations fall within Mean ± 1 SD (L2 Slide 38 & 39)?",
+        options: [
+          "50%",
+          "68% (or 68.3%)",
+          "95% (or 95.5%)",
+          "99.7%"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 38 & 39: Mean ± 1 SD $\\approx$ 68%, Mean ± 2 SD $\\approx$ 95%, Mean ± 3 SD $\\approx$ 99.7%."
+      },
+      {
+        id: 218, module: "L2", category: "Skewness",
+        question: "In a Right-Skewed (Positively Skewed) distribution, what is the relative order of the three measures of center (L2 Slide 41)?",
+        options: [
+          "Mean = Median = Mode",
+          "Mean < Median < Mode",
+          "Mode < Median < Mean (Mean > Median)",
+          "Median > Mean > Mode"
+        ],
+        answer: 2,
+        explanation: "L2 Slide 41: In positive (right) skew, the long right tail pulls the mean upward, resulting in Mean > Median (Mode < Median < Mean)."
+      },
+      {
+        id: 219, module: "L2", category: "Skewness",
+        question: "Why is the Median preferred over the Mean in skewed distributions (L2 Slide 40 & 42)?",
+        options: [
+          "The median is faster to compute by hand",
+          "The long tail in a skewed distribution drags the mean out; the median is much less sensitive to extreme values",
+          "The median converts skewed data into a normal curve automatically",
+          "The mean cannot be calculated when numbers are skewed"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 42 cartoon and notes: 'Tail in a skewed distribution will drag the mean out, in this case the median is a better measure of center' because it is less sensitive to extreme values."
+      },
+      {
+        id: 220, module: "L2", category: "Categorical Summaries",
+        question: "How does a 'Proportion' differ from a 'Percentage' when summarizing categorical data (L2 Slide 43)?",
+        options: [
+          "Proportion takes values between 0 and 1; Percentage is the proportion expressed per 100 (0% to 100%)",
+          "Proportion applies to continuous data; Percentage applies to discrete data",
+          "Proportion is calculated by multiplying counts by sample size",
+          "There is no difference; they are exact mathematical synonyms"
+        ],
+        answer: 0,
+        explanation: "L2 Slide 43: 'Proportion: Part of a whole. It takes value between 0 to 1. Percentage: Proportion expressed per 100. It takes value between 0% to 100%.'"
+      },
+      {
+        id: 221, module: "L2", category: "Assessing Normality",
+        question: "Which of the following is NOT one of the three recommended checks on Slide 44 to assess if data are approximately normally distributed?",
+        options: [
+          "Compare the mean and median (they should be reasonably close)",
+          "Check whether the sample size exceeds 100,000",
+          "Look for extreme values and outliers",
+          "Examine the histogram shape for a roughly symmetric, bell-shaped distribution"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 44 lists three checks: 1. Compare mean and median (close), 2. Look for outliers, 3. Examine histogram shape for bell-curve symmetry."
+      },
+      {
+        id: 222, module: "L2", category: "Age Distribution Exercise",
+        question: "In the age dataset from Slide 45 (Ages: 16, 17, 28, 16, 16, 27, 15, 15, 14, 28, 16; Mean = 18.9, Median = 16), why is the mean misleading?",
+        options: [
+          "The mean gives a false impression that the typical age is older than it really is due to outliers (27 & 28)",
+          "The mean is lower than almost all observed ages",
+          "The median was computed incorrectly",
+          "The data are perfectly symmetrical"
+        ],
+        answer: 0,
+        explanation: "L2 Slide 45: Outliers of 27 and 28 pull the mean to 18.9, while the majority of subjects are 14–17 (Median = 16). The mean falsely inflates the perceived typical age."
+      },
+      {
+        id: 223, module: "L2", category: "Titanic Exercise",
+        question: "In the Titanic ticket cost exercise (Slide 47 & 48), the Survived group had Mean = 49.4 and Median = 26. Is the ticket price distribution skewed?",
+        options: [
+          "No, it is perfectly symmetric because SD is greater than mean",
+          "Yes, it is positively (right) skewed because the mean is considerably greater than the median",
+          "Yes, it is negatively (left) skewed because ticket prices start at zero",
+          "No, skewness cannot be evaluated from mean and median"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 48: 'In both groups, the mean is considerably greater than the median, suggesting positively (right) skewed distributions.'"
+      },
+      {
+        id: 224, module: "L2", category: "Titanic Exercise",
+        question: "For those Titanic ticket data (Slide 48), which measure is the better summary of center, and why?",
+        options: [
+          "Mean, because it incorporates all 1st class luxury ticket prices",
+          "Mode, because ticket prices are categorical",
+          "Median, because the data are skewed by extreme high ticket prices",
+          "Range, because it captures the total cost spectrum"
+        ],
+        answer: 2,
+        explanation: "L2 Slide 48: 'Is the mean or median a better summary measure? The median as the data is skewed.'"
+      },
+      {
+        id: 225, module: "L2", category: "Titanic Exercise",
+        question: "In that same Titanic dataset (Slide 47), which passenger group exhibited greater variability in ticket costs?",
+        options: [
+          "Died group (SD = 34.2, IQR = 18.2)",
+          "Survived group (SD = 68.7, IQR = 46.6)",
+          "Both groups had identical variation",
+          "Variability was zero because minimum price was 0 in both"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 48: 'The standard deviation and interquartile range are much bigger for those who survived (68.7 and 46.6 vs 34.2 and 18.2) so that data is more spread out.'"
+      },
+      {
+        id: 226, module: "L2", category: "Saudi Nursing Study",
+        question: "In the Saudi nursing student demographic table (Slide 49, N = 200), 85 students were male and 115 female. What is the percentage of female students?",
+        options: [
+          "42.5%",
+          "50.0%",
+          "57.5% (115/200)",
+          "62.0%"
+        ],
+        answer: 2,
+        explanation: "L2 Slide 49 Table 1: Female percentage = 115 / 200 = 57.5%."
+      },
+      {
+        id: 227, module: "L2", category: "Heart Failure Study",
+        question: "In the Heart Failure study (Slide 50, N = 106), age is reported as '64 ± 12 years'. What do 64 and 12 represent?",
+        options: [
+          "Median and Range",
+          "Mean and Standard Deviation (Mean ± SD)",
+          "Mode and Interquartile Range",
+          "Point estimate and Margin of Error"
+        ],
+        answer: 1,
+        explanation: "L2 Slide 50 Table 1: 'Age, mean years ± SD: 64 ± 12' represents the sample mean and sample standard deviation."
+      },
+      {
+        id: 228, module: "L2", category: "Heart Failure Study",
+        question: "In that same Heart Failure study (Slide 50), 71 of 106 patients had hypertension. What was the reported percentage?",
+        options: [
+          "35%",
+          "38%",
+          "67% (71/106)",
+          "85%"
+        ],
+        answer: 2,
+        explanation: "L2 Slide 50 Table 1: Hypertension = 71 (67%)."
+      },
+      {
+        id: 229, module: "L2", category: "Dispersion Properties",
+        question: "Can the Standard Deviation of a dataset ever be a negative number?",
+        options: [
+          "Yes, if all data points are negative",
+          "Yes, whenever the mean is less than the median",
+          "No, standard deviation is always $\\ge 0$ because it is the square root of squared deviations",
+          "Yes, in left-skewed distributions"
+        ],
+        answer: 2,
+        explanation: "Standard deviation is calculated as the principal square root of sum of squared deviations divided by $(n-1)$. Since squared values cannot be negative, SD is always $\\ge 0$."
+      },
+      {
+        id: 230, module: "L2", category: "Central Tendency Recap",
+        question: "If a dataset has values [12, 12, 12, 12, 12], what are its Mean, Median, and Standard Deviation?",
+        options: [
+          "Mean = 12, Median = 12, SD = 0",
+          "Mean = 12, Median = 0, SD = 12",
+          "Mean = 60, Median = 12, SD = 1",
+          "Mean = 12, Median = 12, SD = 12"
+        ],
+        answer: 0,
+        explanation: "With identical values: Mean = 60/5 = 12; Median = 12; there is zero deviation from the mean, so SD = 0."
+      },
+
+      /* ============================================================
+         MODULE 3 (L3): TABULAR & GRAPHICAL REPRESENTATION (61-90)
+         ============================================================ */
+      {
+        id: 301, module: "L3", category: "Graph Classification",
+        question: "Which group of graphs is specifically designed for presenting continuous quantitative data (L3 Slide 4 & 12)?",
+        options: [
+          "Pie chart, Bar chart, and Stacked bar chart",
+          "Dot plot, Histogram, Frequency polygon, Box & whisker plot, and Scatterplot",
+          "Venn diagram and Pareto chart",
+          "Pictogram and Flowchart"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 4 & 12 list the standard graphs for continuous data: Dot plot, Histogram, Frequency polygon, Box & whisker plot, and Scatterplot."
+      },
+      {
+        id: 302, module: "L3", category: "Histograms vs Bar Charts",
+        question: "What is the primary structural visual difference between a Histogram and a standard Bar Chart (L3 Slide 14 & 30)?",
+        options: [
+          "Histograms use horizontal cylinders while bar charts use triangles",
+          "Histogram bars are adherent (without gaps) for continuous intervals, while bar chart bars must be separated for distinct categories",
+          "Histogram bars are always colored green while bar charts are black",
+          "Histograms display only percentages while bar charts display only means"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 14 & 30: Histogram bars are adjacent/adherent without gaps because they represent continuous classes; bar chart bars are separated."
+      },
+      {
+        id: 303, module: "L3", category: "Relative Frequency Table",
+        question: "In Table 2 (L3 Slide 8), 140 of 500 surveyed students chose 'Attending community festivals'. What is the calculated Relative Frequency?",
+        options: [
+          "0.14",
+          "0.28 (140 / 500)",
+          "0.35",
+          "0.50"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 8: Relative frequency = 140 / 500 = 0.28 (or 28%)."
+      },
+      {
+        id: 304, module: "L3", category: "Rules for Good Graphs",
+        question: "Which of the following violates the rules for constructing truthful, high-quality statistical graphs (L3 Slide 11 & 36)?",
+        options: [
+          "Clearly labeling axes with measurement units",
+          "Truncating the vertical axis baseline to artificially exaggerate minor differences between groups",
+          "Using a clear, informative title",
+          "Choosing an undistorted, fair scale"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 11 & 36 warn against common mistakes: 'Truncating the y-axis to exaggerate differences' and using decorative 3-D effects that distort interpretation."
+      },
+      {
+        id: 305, module: "L3", category: "Dot Plots",
+        question: "What does each dot represent on a Quantitative Dot Plot (L3 Slide 13)?",
+        options: [
+          "One individual observation, with repeated values stacked vertically",
+          "The overall sample mean",
+          "A whole class interval representing at least 50 patients",
+          "The standard error of measurement"
+        ],
+        answer: 0,
+        explanation: "L3 Slide 13: 'Each dot represents one observation. Repeated values are stacked. Useful for small quantitative datasets.'"
+      },
+      {
+        id: 306, module: "L3", category: "Histograms",
+        question: "What are the two mandatory mathematical rules for constructing class intervals in a histogram (L3 Slide 17)?",
+        options: [
+          "Intervals must overlap by 1 unit and contain odd numbers only",
+          "Class intervals cannot overlap and must cover all data",
+          "Intervals must always be exactly 10 units wide and start at zero",
+          "Intervals must contain identical frequency counts"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 17 explicitly highlights: 'Class intervals: Cannot overlap. Must cover all data.'"
+      },
+      {
+        id: 307, module: "L3", category: "Histograms",
+        question: "In a statistical histogram, what property of each rectangle corresponds directly to the number of observations (L3 Slide 19)?",
+        options: [
+          "Perimeter of the rectangle",
+          "Area of the bar",
+          "Thickness of the bar outline",
+          "Horizontal distance from the y-axis"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 19: 'Area of bar = number of observations. Take care - not all histograms have equal class intervals.'"
+      },
+      {
+        id: 308, module: "L3", category: "Frequency Polygons",
+        question: "How is a Frequency Polygon (line diagram) constructed from an existing histogram (L3 Slide 21)?",
+        options: [
+          "By drawing a curve through the highest outlier point",
+          "By joining the mid-points of the tops of the rectangles in the histogram",
+          "By connecting the bottom left corners of adjacent bars",
+          "By drawing horizontal regression trendlines"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 21: 'It can be constructed by joining mid-points of the tops of the rectangles in the histogram.'"
+      },
+      {
+        id: 309, module: "L3", category: "Frequency Polygons",
+        question: "What is a major advantage of Frequency Polygons over standard histograms in comparative research (L3 Slide 21)?",
+        options: [
+          "They eliminate the need to collect sample data",
+          "We can plot more than one polygon on the same chart to compare distributions",
+          "They automatically convert continuous data into categorical nominal levels",
+          "They cannot be skewed in either direction"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 21: 'We can plot more than one polygon in each chart, to make comparisons.'"
+      },
+      {
+        id: 310, module: "L3", category: "Box & Whisker Plots",
+        question: "What are the components of the '5-number summary' displayed on a Box & Whisker Plot (L3 Slide 24)?",
+        options: [
+          "Mean, Variance, Standard Deviation, Range, and Mode",
+          "Minimum, 1st Quartile (Q1), Median, 3rd Quartile (Q3), and Maximum",
+          "Frequency, Relative Frequency, Cumulative Frequency, Percent, and Ratio",
+          "Sample size, Degrees of freedom, Standard error, t-value, and p-value"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 24: Components of the 5-number summary: 1. Minimum, 2. 1st quartile (Q1), 3. Median, 4. 3rd quartile (Q3), 5. Maximum."
+      },
+      {
+        id: 311, module: "L3", category: "Boxplot Terminology",
+        question: "In the boxplot terminology from Slide 27, how is the 'H-Spread' calculated?",
+        options: [
+          "Upper Hinge (75th percentile) minus Lower Hinge (25th percentile)",
+          "Maximum minus Minimum",
+          "Median divided by 2",
+          "1.5 times the upper quartile"
+        ],
+        answer: 0,
+        explanation: "L3 Slide 27: 'H-Spread = Upper Hinge - Lower Hinge' (which corresponds to Q3 - Q1 = IQR; in the example, 20 - 17 = 3)."
+      },
+      {
+        id: 312, module: "L3", category: "Boxplot Terminology",
+        question: "In the women's running times boxplot example (Slide 27), Upper Hinge = 20 and Lower Hinge = 17 (H-Spread = 3). What is the value of 1 'Step' used for detecting outliers?",
+        options: [
+          "3.0",
+          "4.5 (1.5 × 3)",
+          "1.5",
+          "6.0"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 27: Step = 1.5 × H-Spread = 1.5 × 3 = 4.5."
+      },
+      {
+        id: 313, module: "L3", category: "Boxplot Terminology",
+        question: "In that same women's running dataset (Slide 27), the value 29 lies beyond the upper whisker (Upper Adjacent = 24). What is this value classified as?",
+        options: [
+          "Upper Hinge",
+          "Outside value / Outlier",
+          "Median",
+          "Lower Adjacent"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 27 explicitly labels 29 as an 'Outside value/Outlier' because it exceeds the upper whisker boundary."
+      },
+      {
+        id: 314, module: "L3", category: "Scatterplots",
+        question: "What type of data is a Scatterplot (scatter diagram) specifically used to display (L3 Slide 28)?",
+        options: [
+          "Relationship between two quantitative (numerical) variables",
+          "Percentage breakdown of a single nominal variable",
+          "Frequency distribution of blood groups in a ward",
+          "Differences between 5 ordinal satisfaction ranks"
+        ],
+        answer: 0,
+        explanation: "L3 Slide 28: 'A scatterplot is a graph used to show the relationship between two quantitative (numerical) variables (e.g., BMI and systolic BP).'"
+      },
+      {
+        id: 315, module: "L3", category: "Scatterplots",
+        question: "On a scatterplot examining BMI and systolic blood pressure (Slide 28), what does each individual plotted dot represent?",
+        options: [
+          "Population mean blood pressure",
+          "One individual participant's paired BMI and blood pressure measurements",
+          "An entire hospital clinic",
+          "Standard deviation of BMI"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 28 notes: 'Each dot represents one participant' with an (x, y) coordinate."
+      },
+      {
+        id: 316, module: "L3", category: "Scatterplots",
+        question: "In Slide 43, the scatterplot of 'time spent reading by age' shows points trending upward from left to right. What does this indicate?",
+        options: [
+          "Negative linear relationship",
+          "Positive linear relationship: older respondents tend to read for longer than younger respondents",
+          "No relationship between age and reading duration",
+          "Older people read significantly less than younger people"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 43 & 44: Upward trend indicates a positive linear relationship: 'Older respondents tend to read for longer than younger respondents.'"
+      },
+      {
+        id: 317, module: "L3", category: "Scatterplots",
+        question: "According to Slide 44, what pattern indicates a 'Negative Linear Relationship' on a scatterplot?",
+        options: [
+          "Points forming a horizontal straight line with zero slope",
+          "Points sloping downwards from top-left to bottom-right",
+          "A U-shaped curve",
+          "Points sloping upwards from bottom-left to top-right"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 44 shows a downward sloping arrow: as the variable on the horizontal axis increases, the variable on the vertical axis decreases."
+      },
+      {
+        id: 318, module: "L3", category: "Graph Matching",
+        question: "Which graph is recommended to present the relationship between ONE continuous variable and ONE categorical variable (L3 Slide 39 & 40)?",
+        options: [
+          "Single pie chart",
+          "Side-by-side box & whisker plot",
+          "Scatterplot",
+          "Simple frequency distribution table"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 39: For 'Continuous & categorical variables', use 'Side-by-side box & whisker plot' (e.g., Plant Growth by Fertilizer Types in Slide 40)."
+      },
+      {
+        id: 319, module: "L3", category: "Boxplot Interpretation",
+        question: "In the 'Plant Growth by Fertilizer Types' side-by-side boxplot (Slide 40), which fertilizer produced highest growth and which produced greatest variability?",
+        options: [
+          "Control had highest growth; Type A had greatest variability",
+          "Type C had highest growth; Type B had greatest variability",
+          "Type B had highest growth; Type C had greatest variability",
+          "Type A had highest growth; Control had greatest variability"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 40 summary: 'Fertilizer Type C is associated with the highest plant growth while Type B produces the greatest variability' (tall box and long whiskers)."
+      },
+      {
+        id: 320, module: "L3", category: "Graph Matching",
+        question: "When displaying TWO categorical variables simultaneously (e.g., Weight category by Region of residence in Slide 41), which graph formats are recommended?",
+        options: [
+          "Side-by-side bar chart or Stacked bar chart",
+          "Scatterplot or Line graph",
+          "Histogram or Frequency polygon",
+          "Stem-and-leaf plot"
+        ],
+        answer: 0,
+        explanation: "L3 Slide 39 & 41 show that for 'Categorical & categorical variables', use either a Side-by-side bar chart or a Stacked bar chart."
+      },
+      {
+        id: 321, module: "L3", category: "Graph Matching",
+        question: "What conclusion was drawn from the side-by-side and stacked bar charts in Slide 41 comparing rural and urban residents?",
+        options: [
+          "All rural residents were underweight",
+          "A higher proportion of people living in remote/rural areas were overweight or obese compared to urban residents",
+          "Urban residents had no normal-weight individuals",
+          "Weight category cannot be related to geography"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 41 summary: 'Appears that a higher proportion of people living in remote or rural areas are overweight or obese compared to people living in urban areas.'"
+      },
+      {
+        id: 322, module: "L3", category: "Pie Charts",
+        question: "What is a recognized perceptual limitation of using a Pie Chart to display categorical data (L3 Slide 33)?",
+        options: [
+          "It cannot display percentage symbols",
+          "It is very difficult for humans to accurately judge differences in slice angles and areas",
+          "It can only be drawn using commercial medical software",
+          "It requires calculating standard errors"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 33: 'It can be very difficult for humans to accurately perceive differences in angles and areas of slices... not recommended when you have a large number of categories.'"
+      },
+      {
+        id: 323, module: "L3", category: "Pie Charts",
+        question: "According to Slide 33, what must be done if a researcher wants to compare categorical survey outcomes between two different hospitals using pie charts?",
+        options: [
+          "Combine both hospitals into one 3-D pie slice",
+          "Build two separate pie charts, as each pie chart can only show one variable",
+          "Convert all responses into continuous decimal logarithms",
+          "Pie charts cannot be used in healthcare"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 33 notes: 'It only shows one variable in each pie chart... If we want to make comparisons, we need to build two or more pie charts.'"
+      },
+      {
+        id: 324, module: "L3", category: "Dot Displays",
+        question: "For which scenario is a Categorical Dot Display most appropriate (L3 Slide 35)?",
+        options: [
+          "Very large national registries with 50,000 patients",
+          "Very small categorical datasets where making individual sample size visible is useful",
+          "Continuous variables with extreme positive skewness",
+          "Multivariate linear regressions"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 35: 'Useful for very small categorical datasets. Makes the sample size visible. For larger samples, a bar chart is usually clearer.'"
+      },
+      {
+        id: 325, module: "L3", category: "Graphing Mistakes",
+        question: "Which of the following is listed on Slide 36 as a common graphical mistake?",
+        options: [
+          "Starting the vertical axis at zero",
+          "Using a bar chart when a histogram is required, or using 3-D effects that distort heights and areas",
+          "Including clear titles, units, legends, and axis labels",
+          "Separating the bars for nominal data"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 36 lists: Using a bar chart when a histogram is required, truncating the y-axis to exaggerate differences, and using 3-D effects that distort heights/areas."
+      },
+      {
+        id: 326, module: "L3", category: "3-D Graph Distortions",
+        question: "Why should 3-D effects and decorative embellishments be avoided in statistical charts (L3 Slide 11 & 36)?",
+        options: [
+          "They cause the file size to exceed 100 megabytes",
+          "They distort visual perception and make bar heights, angles, or slice areas difficult to judge accurately",
+          "They automatically change continuous data into qualitative labels",
+          "Computer monitors cannot display three dimensions"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 11 & 36: 'Avoid unnecessary 3-D effects and decorative elements that distort interpretation.'"
+      },
+      {
+        id: 327, module: "L3", category: "Histogram Exercise",
+        question: "In the exercise on Slide 45 (Hours worked per week: 0-10: 4, 10-20: 8, 20-30: 11, 30-40: 51, 40-50: 12, 50-60: 9, 60+: 5), what is the shape of the histogram?",
+        options: [
+          "Uniform distribution with equal frequencies",
+          "Approximately symmetric distribution with a distinct central peak in the 30-40 interval and tapering tails",
+          "Severely right-skewed with peak in the 0-10 interval",
+          "Bimodal distribution with two equal peaks"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 45 data peaks centrally at 30-40 hours (f = 51) while frequencies on either side decrease symmetrically (11, 8, 4 on the left; 12, 9, 5 on the right), producing a roughly symmetric bell-shaped distribution."
+      },
+      {
+        id: 328, module: "L3", category: "Pie Chart Exercise",
+        question: "In Exercise Q2 (Slide 46), a pie chart of 300 students shows: Psychology = 48%, Biology = 40%, Chemistry = 8%, Physics = 4%. How many students are majoring in Psychology?",
+        options: [
+          "120 students",
+          "144 students (0.48 × 300)",
+          "150 students",
+          "96 students"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 46: 48% of 300 = 0.48 × 300 = 144 students."
+      },
+      {
+        id: 329, module: "L3", category: "Pie Chart Exercise",
+        question: "Using that same pie chart from Slide 46 (n = 300 students), how many students are majoring in Physics (4%)?",
+        options: [
+          "4 students",
+          "12 students (0.04 × 300)",
+          "24 students",
+          "40 students"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 46: 4% of 300 = 0.04 × 300 = 12 students."
+      },
+      {
+        id: 330, module: "L3", category: "Guiding Principle",
+        question: "What is the overarching maxim stated on Slide 47 regarding graph selection in clinical research?",
+        options: [
+          "Always select the chart with the most colorful graphics",
+          "Choose the graph to answer the question—not to decorate the slide",
+          "Every numerical dataset should always be shown as both a pie chart and a scatterplot",
+          "Continuous data must always be collapsed into three categories"
+        ],
+        answer: 1,
+        explanation: "L3 Slide 47 concludes: 'The best graph depends on the variable type and the question being asked... Choose the graph to answer the question—not to decorate the slide.'"
+      },
+
+      /* ============================================================
+         MODULE 4 (L4): PROBABILITY & INFERENCE (91-120)
+         ============================================================ */
+      {
+        id: 401, module: "L4", category: "Probability Basics",
+        question: "Why do nurses and healthcare researchers need probability (L4 Slide 3)?",
+        options: [
+          "To prove that medical errors never occur",
+          "Because clinical outcomes are uncertain; estimating chance allows clinicians to make safer decisions",
+          "To convert patient charts into financial spreadsheets",
+          "To replace physiological lab equipment"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 3: 'Probability is the language we use when outcomes are uncertain. Clinical uncertainty $\\rightarrow$ Estimate chance $\\rightarrow$ Make safer decisions.'"
+      },
+      {
+        id: 402, module: "L4", category: "Probability Basics",
+        question: "What is the numerical range of any valid statistical probability (L4 Slide 4)?",
+        options: [
+          "-1.0 to +1.0",
+          "0 to 1 (0% to 100%)",
+          "0 to infinity",
+          "1.00 to 99.00"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 4 states that probability ranges from 0 (impossible / cannot happen) to 1 (certain / will happen), or 0% to 100%."
+      },
+      {
+        id: 403, module: "L4", category: "Risk Calculation",
+        question: "In a surgical ward, 5 out of 40 patients developed a side effect to medication X (L4 Slide 6). What is the probability (risk)?",
+        options: [
+          "0.080 (8.0%)",
+          "0.125 (12.5%)",
+          "0.200 (20.0%)",
+          "0.250 (25.0%)"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 6: Probability = Favorable outcomes / Total outcomes = 5 / 40 = 0.125 = 12.5%."
+      },
+      {
+        id: 404, module: "L4", category: "Terminology",
+        question: "How does 'Risk' differ from an 'Event' in clinical probability (L4 Slide 7)?",
+        options: [
+          "An event is always a harmful outcome; risk is a neutral outcome",
+          "An event is any outcome of interest (e.g., fever); Risk is the probability of a harmful outcome (e.g., infection)",
+          "Risk applies to continuous data; event applies to discrete data",
+          "Risk is calculated using odds ratios; event is calculated using standard deviation"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 7: 'Event: An outcome of interest (e.g., fever after vaccination). Risk: Probability of a harmful outcome (e.g., risk of infection).'"
+      },
+      {
+        id: 405, module: "L4", category: "Relative Risk",
+        question: "What is the defining formula for Relative Risk (RR) between two clinical groups (L4 Slide 8)?",
+        options: [
+          "Risk in exposed group ÷ Risk in unexposed group",
+          "Odds of exposure in cases ÷ Odds of exposure in controls",
+          "Events ÷ Non-events",
+          "Critical value × Standard error"
+        ],
+        answer: 0,
+        explanation: "L4 Slide 8: 'RR = risk in exposed group ÷ risk in unexposed group. RR answers: How many times as high is the risk?'"
+      },
+      {
+        id: 406, module: "L4", category: "Relative Risk Calculation",
+        question: "In Slide 9, 30 of 150 immobile patients developed pressure injury (Risk = 0.20) vs 10 of 100 mobile patients (Risk = 0.10). What is the Relative Risk?",
+        options: [
+          "1.50",
+          "2.00 (0.20 ÷ 0.10)",
+          "3.00",
+          "0.50"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 9: RR = 0.20 / 0.10 = 2.0. Immobile patients had twice the risk of pressure injury compared with mobile patients."
+      },
+      {
+        id: 407, module: "L4", category: "Relative Risk Interpretation",
+        question: "What does it mean when the Relative Risk equals 1.0 (RR = 1) (L4 Slide 10)?",
+        options: [
+          "Risk is twice as high in the exposed group",
+          "There is no difference in risk between the two groups",
+          "The exposure completely protects the patient from harm",
+          "The outcome is statistically impossible"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 10: 'RR = 1: Same risk / No difference between groups. RR > 1: Higher risk. RR < 1: Lower risk (protective).'"
+      },
+      {
+        id: 408, module: "L4", category: "Relative Risk Calculation",
+        question: "In the hand hygiene practice check (Slide 11), infection risk was 18/90 (0.20) in poor hygiene vs 6/100 (0.06) in good hygiene. What is the RR and interpretation?",
+        options: [
+          "RR = 0.30; poor hygiene reduced infection by 30%",
+          "RR = 3.33; patients with poor hand hygiene had about 3.3 times the risk of infection",
+          "RR = 12.0; poor hygiene caused 12 extra infections per 100 patients",
+          "RR = 1.33; there was no noticeable difference"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 11: RR = 0.20 / 0.06 = 3.33. Patients with poor hand hygiene had ~3.3 times the risk of infection compared with good hygiene."
+      },
+      {
+        id: 409, module: "L4", category: "Odds vs Risk",
+        question: "In a sample of 100 patients, 20 are infected and 80 are not infected (L4 Slide 12). What are the calculated Odds of infection?",
+        options: [
+          "20 ÷ 100 = 0.20",
+          "20 ÷ 80 = 0.25",
+          "80 ÷ 20 = 4.00",
+          "20 × 80 = 1600"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 12: 'Odds = events ÷ non-events = 20 / 80 = 0.25. (Probability/Risk is 20/100 = 0.20. Do not mix them).'"
+      },
+      {
+        id: 410, module: "L4", category: "Odds Ratio",
+        question: "For a standard 2×2 contingency table with cells [a, b; c, d], what is the mathematical formula for the Odds Ratio (OR) (L4 Slide 13)?",
+        options: [
+          "(a + b) ÷ (c + d)",
+          "(a × d) ÷ (b × c)",
+          "(a ÷ c) ÷ (b ÷ d)",
+          "(a × b) ÷ (c × d)"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 13: Odds Ratio formula: $OR = (a \\times d) \\div (b \\times c)$."
+      },
+      {
+        id: 411, module: "L4", category: "Odds Ratio Calculation",
+        question: "In the smoking and disease example (Slide 14: Cases = 40 smokers, 20 non-smokers; Controls = 60 smokers, 80 non-smokers), what is the calculated Odds Ratio?",
+        options: [
+          "1.33",
+          "2.00",
+          "2.67 ((40 × 80) ÷ (60 × 20))",
+          "3.50"
+        ],
+        answer: 2,
+        explanation: "L4 Slide 14: OR = (40 × 80) / (60 × 20) = 3200 / 1200 = 2.67. The odds of being a smoker were 2.67 times higher among cases than controls."
+      },
+      {
+        id: 412, module: "L4", category: "Binomial Distribution",
+        question: "Which probability distribution models a discrete variable with a fixed number of trials and binary outcomes (yes/no) with constant probability (L4 Slide 18)?",
+        options: [
+          "Normal distribution",
+          "Binomial distribution",
+          "Poisson distribution",
+          "Uniform distribution"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 18: 'Binomial distribution: Is used for discrete variables. Fixed number of patients or trials. Each patient has two possible outcomes: yes/no. Probability constant.'"
+      },
+      {
+        id: 413, module: "L4", category: "Poisson Distribution",
+        question: "Which distribution models counts of relatively uncommon events occurring in a fixed period of time or space (L4 Slide 19)?",
+        options: [
+          "Normal distribution",
+          "Poisson distribution",
+          "Binomial distribution",
+          "Student's t-distribution"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 19: 'Poisson distribution: Is used for discrete variables. Models counts of events in a fixed period or area. Useful when events are relatively uncommon (e.g., falls per month, needlestick injuries).'"
+      },
+      {
+        id: 414, module: "L4", category: "Poisson Distribution",
+        question: "All of the following clinical variables are classic examples modeled by the Poisson distribution EXCEPT (L4 Slide 19):",
+        options: [
+          "Number of patient falls per month",
+          "Number of medication errors per week",
+          "Patient body weight measured in kilograms",
+          "Number of emergency calls received per hour"
+        ],
+        answer: 2,
+        explanation: "Body weight is a continuous variable modeled by the normal distribution (Slide 20). Falls, medication errors, and calls are count events over time modeled by Poisson (Slide 19)."
+      },
+      {
+        id: 415, module: "L4", category: "Normal Distribution",
+        question: "What are the core visual and statistical properties of the Normal Distribution (L4 Slide 20)?",
+        options: [
+          "It models discrete counts and is heavily skewed to the right",
+          "It is a symmetric, bell-shaped distribution for continuous variables where most values cluster near the mean",
+          "It has two distinct modes with zero values at the center",
+          "It only applies when sample size is smaller than 10"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 20: 'Normal distribution: bell-shaped pattern. Is used for continuous variables. Most values are near the mean. Fewer values are far away.'"
+      },
+      {
+        id: 416, module: "L4", category: "Empirical Rule",
+        question: "According to the Empirical Rule for a normal distribution, approximately what percentage of observations fall within Mean ± 2 SD (L4 Slide 21)?",
+        options: [
+          "50%",
+          "68%",
+          "95%",
+          "99.7%"
+        ],
+        answer: 2,
+        explanation: "L4 Slide 21: Mean ± 1 SD $\\approx$ 68%, Mean ± 2 SD $\\approx$ 95%, Mean ± 3 SD $\\approx$ 99.7%."
+      },
+      {
+        id: 417, module: "L4", category: "Empirical Rule",
+        question: "If systolic BP is normally distributed with Mean = 120 mmHg and SD = 10 mmHg, what interval contains approximately 95% of individual patient values (L4 Slide 21)?",
+        options: [
+          "110 to 130 mmHg",
+          "100 to 140 mmHg (120 ± 2 × 10)",
+          "90 to 150 mmHg",
+          "116 to 124 mmHg"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 21: Mean ± 2 SD = 120 ± (2 × 10) = 100 to 140 mmHg contains approximately 95% of individual patient BP values."
+      },
+      {
+        id: 418, module: "L4", category: "Parameter vs Estimate",
+        question: "What is the fundamental difference between a 'Population Parameter' and a 'Point Estimate' (L4 Slide 28)?",
+        options: [
+          "A parameter is calculated from a small sample; a point estimate is the census truth",
+          "Parameter = population truth (unknown real value we want); Point estimate = sample guess (calculated from sample data)",
+          "A parameter must always be between 0 and 1; a point estimate can be any number",
+          "Parameters apply only to categorical variables; point estimates apply only to continuous variables"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 28: 'Memory sentence: Parameter = population truth. Point estimate = sample guess.'"
+      },
+      {
+        id: 419, module: "L4", category: "Standard Error vs SD",
+        question: "How does the Standard Error (SE) differ conceptually from the Standard Deviation (SD) (L4 Slide 29)?",
+        options: [
+          "SD measures spread between individual patients; SE measures how much sample estimates bounce across repeated samples",
+          "SD applies to repeated samples; SE applies only to a single patient's lab value",
+          "SD is critical value multiplied by sample size; SE is variance squared",
+          "They are exact mathematical synonyms and are interchangeable"
+        ],
+        answer: 0,
+        explanation: "L4 Slide 29: 'Do not confuse SD and SE: SD = spread between patients. SE = spread between sample estimates if the study were repeated.'"
+      },
+      {
+        id: 420, module: "L4", category: "Standard Error",
+        question: "What happens to the Standard Error (SE) when the study sample size increases (L4 Slide 29)?",
+        options: [
+          "The SE increases, making the estimate unstable",
+          "The SE decreases, producing a more stable and precise estimate",
+          "The SE changes to a negative number",
+          "Sample size has no mathematical effect on SE"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 29: 'Larger sample size $\\rightarrow$ smaller SE. Small SE = more stable estimate.'"
+      },
+      {
+        id: 421, module: "L4", category: "Critical Values",
+        question: "What are the standard Critical Values for 90%, 95%, and 99% confidence levels (L4 Slide 30)?",
+        options: [
+          "90% = 1.00; 95% = 2.00; 99% = 3.00",
+          "90% ≈ 1.645; 95% ≈ 1.96; 99% ≈ 2.576",
+          "90% ≈ 2.576; 95% ≈ 1.96; 99% ≈ 1.645",
+          "90% = 0.05; 95% = 0.025; 99% = 0.01"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 30 lists standard critical values: 90% confidence $\\approx$ 1.645; 95% confidence $\\approx$ 1.96; 99% confidence $\\approx$ 2.576."
+      },
+      {
+        id: 422, module: "L4", category: "Confidence Level vs Width",
+        question: "What happens to the width of a Confidence Interval when the confidence level is increased from 90% to 99% (L4 Slide 30)?",
+        options: [
+          "The interval becomes narrower",
+          "The interval becomes wider because a larger critical value is required",
+          "The interval width remains completely unchanged",
+          "The margin of error becomes zero"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 30: 'Higher confidence needs a larger critical value (e.g., 2.576 vs 1.645), so the interval becomes wider.'"
+      },
+      {
+        id: 423, module: "L4", category: "Margin of Error",
+        question: "What is the formula used to calculate the 'Margin of Error' for a Confidence Interval (L4 Slide 31)?",
+        options: [
+          "Margin of Error = Critical Value × Standard Error",
+          "Margin of Error = Sample Mean ÷ Sample Size",
+          "Margin of Error = Variance × Relative Risk",
+          "Margin of Error = Favorable Outcomes ÷ Total Outcomes"
+        ],
+        answer: 0,
+        explanation: "L4 Slide 31: 'Margin of error = Critical value × Standard error.'"
+      },
+      {
+        id: 424, module: "L4", category: "CI Interpretation",
+        question: "A study reports sample mean systolic BP = 120 mmHg with a 95% CI of 116 to 124 mmHg. What is the scientifically accurate interpretation (L4 Slide 24 & 32)?",
+        options: [
+          "95% of individual patients in the population have a BP between 116 and 124 mmHg",
+          "We are 95% confident that the true population mean systolic BP lies between 116 and 124 mmHg",
+          "There is a 95% probability that any new patient admitted will have BP between 116 and 124 mmHg",
+          "The sample mean changes by 95 mmHg across repeat trials"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 24 & 32: 'Avoid saying 95% of individual patients have BP between 116 and 124. The CI describes uncertainty around the estimated population mean, not the spread of individual patients.'"
+      },
+      {
+        id: 425, module: "L4", category: "CI Precision",
+        question: "What does the width of a Confidence Interval reveal about the precision of an estimated parameter (L4 Slide 25)?",
+        options: [
+          "A wider CI indicates higher precision and a larger sample size",
+          "A narrower CI indicates greater precision and less random error",
+          "A narrower CI indicates that the research methodology is flawed",
+          "The width of a CI only indicates the skewness of the underlying distribution"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 25: 'Narrow CI $\\rightarrow$ more precision (larger sample, less random error). Wide CI $\\rightarrow$ less precision.'"
+      },
+      {
+        id: 426, module: "L4", category: "Clinical Pitfalls",
+        question: "Which of the following is a common clinical misinterpretation highlighted on Slide 33?",
+        options: [
+          "Stating that RR = 2 means twice the risk in the exposed group",
+          "Saying RR = 2 means a 2% risk of disease",
+          "Recognizing that RR < 1 implies a protective factor",
+          "Dividing risk in exposed by risk in unexposed to obtain RR"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 33 highlights common mistakes: 'Saying RR = 2 means 2% risk. It means two times the risk.'"
+      },
+      {
+        id: 427, module: "L4", category: "CI Nursing Study",
+        question: "In a nursing intervention study, the post-treatment mean pain score is 4.2 with 95% CI [3.8 to 4.6] (L4 Slide 26). How is this interpreted?",
+        options: [
+          "4.2% of patients experienced pain below 3.8",
+          "The true population mean pain score is estimated around 4.2, with a plausible parameter range from 3.8 to 4.6",
+          "Exactly 95% of patients had their pain scores reduced to 3.8",
+          "Individual patient pain scores are restricted strictly between 3.8 and 4.6"
+        ],
+        answer: 1,
+        explanation: "L4 Slide 26: 'Plain explanation: The population mean pain score is estimated to be around 4.2, with a plausible range from 3.8 to 4.6. A CI is about the estimate, not the spread of individual patients.'"
+      },
+      {
+        id: 428, module: "L4", category: "Lecture Practice Quiz",
+        question: "Which distribution is used for continuous data (L4 Slide 36 & 37 Question 1)?",
+        options: [
+          "Binomial",
+          "Poisson",
+          "Normal",
+          "Categorical"
+        ],
+        answer: 2,
+        explanation: "L4 Slide 36 & 37 (Question 1): 'Which distribution is used for continuous data? C. Normal.' Binomial and Poisson are discrete."
+      },
+      {
+        id: 429, module: "L4", category: "Lecture Practice Quiz",
+        question: "A nurse calculates a sample mean blood pressure of 126 mmHg with a margin of error of 5 mmHg. What represents the approximate 95% CI (L4 Slide 36 & 37 Question 2)?",
+        options: [
+          "121–131 mmHg (126 ± 5 mmHg)",
+          "126–131 mmHg",
+          "121–126 mmHg",
+          "126–136 mmHg"
+        ],
+        answer: 0,
+        explanation: "L4 Slide 36 & 37 (Question 2): 95% CI = Point estimate ± Margin of error = 126 ± 5 = [121 to 131 mmHg]."
+      },
+      {
+        id: 430, module: "L4", category: "Lecture Practice Quiz",
+        question: "A diabetic patient sample has mean fasting glucose 145 mg/dL with SE = 3 mg/dL. Using a 95% confidence level with critical value = 1.96, what is the margin of error (L4 Slide 36 & 37 Question 3)?",
+        options: [
+          "1.96 mg/dL",
+          "3.00 mg/dL",
+          "5.88 mg/dL (1.96 × 3)",
+          "6.96 mg/dL"
+        ],
+        answer: 2,
+        explanation: "L4 Slide 36 & 37 (Question 3): Margin of error = Critical value × SE = 1.96 × 3.00 = 5.88 mg/dL."
+      }
+    ];
+
+    /* STREAMING_CHUNK:Configuring state management, 50/50 elimination engine, and timers... */
+    let activeModule = "ALL";
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let userAnswers = {}; // { questionId: selectedIndex }
+    let eliminatedOptions = {}; // { questionId: Set of eliminated indices }
+    let instantRevealEnabled = true;
+    let isSingleCardMode = true;
+    let quizStartTime = Date.now();
+    let timerInterval = null;
+    let quizSubmitted = false;
+
+    // Fisher-Yates array shuffling
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function triggerToast(message, icon = "fa-circle-check", isError = false) {
+      const toast = document.getElementById('toastNotification');
+      const text = document.getElementById('toastMessageText');
+      const toastIcon = document.getElementById('toastIcon');
+      text.textContent = message;
+      toastIcon.className = `fa-solid ${icon} ${isError ? 'text-neon-rose' : 'text-neon-emerald'} text-base`;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 2600);
+    }
+
+    // Prepare questions with active module filter, count, and randomization
+    function prepareQuestions() {
+      // 1. Filter by module
+      let pool = MASTER_QUESTIONS.filter(q => activeModule === "ALL" || q.module === activeModule);
+
+      // 2. Question count
+      const activeChip = document.querySelector('.qcount-chip.border-neon-cyan');
+      const rawCount = activeChip ? activeChip.dataset.num : "30";
+      const count = rawCount === "ALL" ? pool.length : Math.min(parseInt(rawCount), pool.length);
+
+      const doShuffleQuestions = document.getElementById('shuffleQuestionsCheckbox').checked;
+      const doShuffleChoices = document.getElementById('shuffleChoicesCheckbox').checked;
+      instantRevealEnabled = document.getElementById('instantRevealCheckbox').checked;
+
+      if (doShuffleQuestions) {
+        pool = shuffleArray(pool);
+      }
+      pool = pool.slice(0, count);
+
+      currentQuestions = pool.map((q, idx) => {
+        let opts = [...q.options];
+        let correctIdx = q.answer;
+
+        if (doShuffleChoices) {
+          const pairs = opts.map((text, i) => ({ text, isCorrect: i === correctIdx }));
+          const shuffledPairs = shuffleArray(pairs);
+          opts = shuffledPairs.map(p => p.text);
+          correctIdx = shuffledPairs.findIndex(p => p.isCorrect);
+        }
+
+        return {
+          ...q,
+          displayIndex: idx + 1,
+          runtimeOptions: opts,
+          runtimeAnswer: correctIdx
+        };
+      });
+
+      // Reset state
+      currentIndex = 0;
+      userAnswers = {};
+      eliminatedOptions = {};
+      quizSubmitted = false;
+
+      document.getElementById('totalQuestionsBadge').textContent = currentQuestions.length;
+      document.getElementById('currentCardNumberBadge').textContent = "1";
+      document.getElementById('activeModuleHeaderLabel').textContent = 
+        activeModule === "ALL" ? "All Modules (L1-L4)" : `Module ${activeModule}`;
+
+      startTimer();
+      updateScoreboard();
+      updateProgressBar();
+      renderNavigatorDots();
+
+      if (isSingleCardMode) {
+        renderSingleCard();
+      } else {
+        renderFullListView();
+      }
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      quizStartTime = Date.now();
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - quizStartTime) / 1000);
+        document.getElementById('liveTimerDisplay').textContent = formatTime(elapsed);
+      }, 1000);
+    }
+
+    function getScoreMetrics() {
+      let correct = 0;
+      currentQuestions.forEach(q => {
+        if (userAnswers[q.id] !== undefined && userAnswers[q.id] === q.runtimeAnswer) {
+          correct++;
+        }
+      });
+      const answered = Object.keys(userAnswers).length;
+      const total = currentQuestions.length;
+      const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
+      return { correct, answered, total, percentage };
+    }
+
+    function updateScoreboard() {
+      const stats = getScoreMetrics();
+      document.getElementById('liveScoreDisplay').textContent = `${stats.correct} / ${stats.answered}`;
+      document.getElementById('answeredCounterBadge').textContent = `${stats.answered} of ${stats.total} Answered`;
+    }
+
+    function updateProgressBar() {
+      const progress = ((currentIndex + 1) / currentQuestions.length) * 100;
+      document.getElementById('linearProgressBar').style.width = `${progress}%`;
+      document.getElementById('currentCardNumberBadge').textContent = currentIndex + 1;
+    }
+
+    function renderNavigatorDots() {
+      const nav = document.getElementById('dotsNavigator');
+      nav.innerHTML = currentQuestions.map((q, idx) => {
+        const isAnswered = userAnswers[q.id] !== undefined;
+        const isCurrent = idx === currentIndex;
+        let colorClass = "bg-slate-800 text-slate-400 border border-slate-700";
+
+        if (isAnswered) {
+          if (instantRevealEnabled || quizSubmitted) {
+            colorClass = userAnswers[q.id] === q.runtimeAnswer 
+              ? "bg-emerald-500/25 text-emerald-300 border border-emerald-500/50" 
+              : "bg-rose-500/25 text-rose-300 border border-rose-500/50";
+          } else {
+            colorClass = "bg-indigo-500/30 text-indigo-200 border border-indigo-500";
+          }
+        }
+
+        if (isCurrent) {
+          colorClass += " ring-2 ring-neon-cyan ring-offset-2 ring-offset-cosmic-950 font-bold scale-110";
+        }
+
+        return `
+          <button 
+            type="button" 
+            onclick="jumpToQuestion(${idx})" 
+            title="Question ${idx + 1}"
+            class="w-7 h-7 rounded-lg text-xs font-mono shrink-0 transition-all flex items-center justify-center hover:scale-105 ${colorClass}">
+            ${idx + 1}
+          </button>
+        `;
+      }).join('');
+    }
+
+    window.jumpToQuestion = function(idx) {
+      if (idx >= 0 && idx < currentQuestions.length) {
+        currentIndex = idx;
+        updateProgressBar();
+        renderNavigatorDots();
+        renderSingleCard();
+      }
+    };
+
+    /* STREAMING_CHUNK:Implementing Answer Elimination (50/50 and manual strike) logic... */
+    // Manual eliminate / restore single option toggle
+    window.toggleManualElimination = function(qId, optIdx, event) {
+      event.stopPropagation();
+      if (!eliminatedOptions[qId]) {
+        eliminatedOptions[qId] = new Set();
+      }
+      if (eliminatedOptions[qId].has(optIdx)) {
+        eliminatedOptions[qId].delete(optIdx);
+        triggerToast("Option restored", "fa-arrow-rotate-left");
+      } else {
+        eliminatedOptions[qId].add(optIdx);
+        triggerToast("Option struck out", "fa-strikethrough");
+      }
+
+      if (isSingleCardMode) {
+        renderSingleCard();
+      } else {
+        renderFullListView();
+      }
+    };
+
+    // 50:50 Eliminator tool for current question
+    function trigger5050Elimination() {
+      const q = currentQuestions[currentIndex];
+      if (!q) return;
+
+      if (!eliminatedOptions[q.id]) {
+        eliminatedOptions[q.id] = new Set();
+      }
+
+      // Check remaining incorrect options that can be eliminated
+      const incorrectIndices = q.runtimeOptions
+        .map((_, i) => i)
+        .filter(i => i !== q.runtimeAnswer && !eliminatedOptions[q.id].has(i));
+
+      if (incorrectIndices.length <= 1) {
+        triggerToast("Already eliminated maximum options for this question!", "fa-circle-exclamation", true);
+        return;
+      }
+
+      const shuffledIncorrect = shuffleArray(incorrectIndices);
+      eliminatedOptions[q.id].add(shuffledIncorrect[0]);
+      if (shuffledIncorrect.length > 1) {
+        eliminatedOptions[q.id].add(shuffledIncorrect[1]);
+      }
+
+      triggerToast("50:50 Used: Two incorrect choices eliminated!", "fa-wand-magic-sparkles");
+      renderSingleCard();
+    }
+
+    /* STREAMING_CHUNK:Rendering Single Card View and List View DOM templates... */
+    function renderSingleCard() {
+      const q = currentQuestions[currentIndex];
+      const card = document.getElementById('activeQuestionCard');
+      const isAnswered = userAnswers[q.id] !== undefined;
+      const selectedIndex = userAnswers[q.id];
+      const eliminatedSet = eliminatedOptions[q.id] || new Set();
+
+      const optionsHtml = q.runtimeOptions.map((opt, idx) => {
+        const letter = String.fromCharCode(65 + idx);
+        const isEliminated = eliminatedSet.has(idx);
+        let btnClasses = "border-slate-800 bg-slate-900/80 text-slate-200 hover:border-indigo-500/60 hover:bg-slate-800/80";
+        let badgeClasses = "bg-slate-800 text-slate-300 border border-slate-700";
+        let iconHtml = '';
+
+        if (isAnswered) {
+          if (instantRevealEnabled || quizSubmitted) {
+            if (idx === q.runtimeAnswer) {
+              btnClasses = "border-emerald-500 bg-emerald-950/40 text-emerald-100 font-semibold ring-1 ring-emerald-500/50 shadow-md shadow-emerald-950/50";
+              badgeClasses = "bg-emerald-500 text-slate-950 font-bold";
+              iconHtml = '<i class="fa-solid fa-circle-check text-emerald-400 ml-auto text-lg"></i>';
+            } else if (idx === selectedIndex) {
+              btnClasses = "border-rose-500 bg-rose-950/40 text-rose-100 ring-1 ring-rose-500/50 shadow-md shadow-rose-950/50";
+              badgeClasses = "bg-rose-500 text-white font-bold";
+              iconHtml = '<i class="fa-solid fa-circle-xmark text-rose-400 ml-auto text-lg"></i>';
+            } else {
+              btnClasses = "border-slate-800/80 bg-slate-950/40 text-slate-500 opacity-50";
+            }
+          } else {
+            if (idx === selectedIndex) {
+              btnClasses = "border-neon-indigo bg-indigo-950/40 text-white font-semibold ring-1 ring-neon-indigo";
+              badgeClasses = "bg-neon-indigo text-white font-bold";
+            }
+          }
+        }
+
+        const elimClass = isEliminated ? 'eliminated-option' : '';
+
+        return `
+          <div class="relative group/opt">
+            <button 
+              type="button" 
+              onclick="handleOptionSelection(${q.id}, ${idx})"
+              ${(isAnswered && instantRevealEnabled) || isEliminated ? 'disabled' : ''}
+              class="w-full text-left p-4 rounded-2xl border transition-all duration-200 flex items-center gap-3.5 group cursor-pointer ${btnClasses} ${elimClass}">
+              <span class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 transition-transform group-hover:scale-105 ${badgeClasses}">
+                ${letter}
+              </span>
+              <span class="text-sm sm:text-base leading-snug flex-grow">${opt}</span>
+              ${iconHtml}
+            </button>
+            
+            <!-- Manual strike/eliminate toggle button on the right edge -->
+            ${!isAnswered ? `
+              <button 
+                type="button" 
+                onclick="toggleManualElimination(${q.id},${idx}, event)"
+                title="${isEliminated ? 'Restore choice' : 'Eliminate choice'}"
+                class="absolute right-3.5 top-1/2 -translate-y-1/2 opacity-0 group-hover/opt:opacity-100 p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-rose-400 transition-all text-xs z-10">
+                <i class="fa-solid ${isEliminated ? 'fa-rotate-left' : 'fa-strikethrough'}"></i>
+              </button>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      let explanationHtml = '';
+      if (isAnswered && (instantRevealEnabled || quizSubmitted)) {
+        const isCorrect = selectedIndex === q.runtimeAnswer;
+        explanationHtml = `
+          <div class="mt-6 p-4 sm:p-5 rounded-2xl border ${isCorrect ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200' : 'bg-slate-900/90 border-slate-700/80 text-slate-300'} animate-pop-in">
+            <div class="flex items-start gap-3">
+              <i class="fa-solid ${isCorrect ? 'fa-square-check text-emerald-400 text-xl' : 'fa-lightbulb text-neon-amber text-xl'} mt-0.5"></i>
+              <div>
+                <p class="font-bold text-xs uppercase tracking-wider ${isCorrect ? 'text-emerald-400' : 'text-amber-400'}">
+                  ${isCorrect ? 'Mastery Confirmed' : 'Core Biostatistical Insight'}
+                </p>
+                <p class="text-xs sm:text-sm mt-1 leading-relaxed text-slate-200">${q.explanation}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Module badge styling
+      const modColors = {
+        L1: "bg-emerald-500/10 text-neon-emerald border-emerald-500/30",
+        L2: "bg-cyan-500/10 text-neon-cyan border-cyan-500/30",
+        L3: "bg-amber-500/10 text-neon-amber border-amber-500/30",
+        L4: "bg-rose-500/10 text-neon-rose border-rose-500/30",
+      };
+      const badgeStyle = modColors[q.module] || "bg-indigo-500/10 text-neon-indigo border-indigo-500/30";
+
+      card.innerHTML = `
+        <div class="space-y-4">
+          <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${badgeStyle}">
+                ${q.module}
+              </span>
+              <span class="text-xs font-semibold text-slate-400 bg-slate-800/80 px-2.5 py-0.5 rounded-md border border-slate-700">
+                ${q.category}
+              </span>
+            </div>
+            <span class="text-xs text-slate-400 font-mono">Q-${q.displayIndex} of ${currentQuestions.length}</span>
+          </div>
+
+          <h2 class="text-base sm:text-xl font-bold font-display text-white leading-snug tracking-tight">
+            ${q.question}
+          </h2>
+
+          <div class="space-y-3 pt-2">
+            ${optionsHtml}
+          </div>
+
+          ${explanationHtml}
+        </div>
+      `;
+
+      document.getElementById('navPrevBtn').disabled = currentIndex === 0;
+      const isLast = currentIndex === currentQuestions.length - 1;
+      const nextBtn = document.getElementById('navNextBtn');
+      if (isLast) {
+        nextBtn.innerHTML = '<span>Finish Suite</span> <i class="fa-solid fa-flag-checkered text-xs"></i>';
+      } else {
+        nextBtn.innerHTML = '<span>Next</span> <i class="fa-solid fa-chevron-right text-xs"></i>';
+      }
+    }
+
+    function renderFullListView() {
+      const container = document.getElementById('listItemsMount');
+      container.innerHTML = currentQuestions.map((q, qIdx) => {
+        const isAnswered = userAnswers[q.id] !== undefined;
+        const selectedIndex = userAnswers[q.id];
+        const eliminatedSet = eliminatedOptions[q.id] || new Set();
+
+        const optionsHtml = q.runtimeOptions.map((opt, idx) => {
+          const letter = String.fromCharCode(65 + idx);
+          const isEliminated = eliminatedSet.has(idx);
+          let btnClasses = "border-slate-800 bg-slate-900/70 text-slate-200 hover:border-indigo-500/50";
+          let badgeClasses = "bg-slate-800 text-slate-300";
+          let iconHtml = '';
+
+          if (isAnswered) {
+            if (instantRevealEnabled || quizSubmitted) {
+              if (idx === q.runtimeAnswer) {
+                btnClasses = "border-emerald-500 bg-emerald-950/40 text-emerald-100 font-semibold";
+                badgeClasses = "bg-emerald-500 text-slate-950 font-bold";
+                iconHtml = '<i class="fa-solid fa-circle-check text-emerald-400 ml-auto"></i>';
+              } else if (idx === selectedIndex) {
+                btnClasses = "border-rose-500 bg-rose-950/40 text-rose-100";
+                badgeClasses = "bg-rose-500 text-white font-bold";
+                iconHtml = '<i class="fa-solid fa-circle-xmark text-rose-400 ml-auto"></i>';
+              } else {
+                btnClasses = "border-slate-900 bg-slate-950/40 text-slate-500 opacity-50";
+              }
+            } else {
+              if (idx === selectedIndex) {
+                btnClasses = "border-neon-indigo bg-indigo-900/30 text-white font-semibold";
+                badgeClasses = "bg-neon-indigo text-white font-bold";
+              }
+            }
+          }
+
+          const elimClass = isEliminated ? 'eliminated-option' : '';
+
+          return `
+            <div class="relative group/opt">
+              <button 
+                type="button" 
+                onclick="handleOptionSelection(${q.id}, ${idx})"
+                ${(isAnswered && instantRevealEnabled) || isEliminated ? 'disabled' : ''}
+                class="w-full text-left p-3.5 rounded-xl border transition flex items-center gap-3 text-sm ${btnClasses} ${elimClass}">
+                <span class="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${badgeClasses}">${letter}</span>
+                <span class="flex-grow">${opt}</span>
+                ${iconHtml}
+              </button>
+              ${!isAnswered ? `
+                <button 
+                  type="button" 
+                  onclick="toggleManualElimination(${q.id},${idx}, event)"
+                  title="${isEliminated ? 'Restore' : 'Strike'}"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover/opt:opacity-100 p-1 rounded bg-slate-800 text-slate-400 hover:text-rose-400 text-xs">
+                  <i class="fa-solid ${isEliminated ? 'fa-rotate-left' : 'fa-strikethrough'}"></i>
+                </button>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+
+        let explanationHtml = '';
+        if (isAnswered && (instantRevealEnabled || quizSubmitted)) {
+          explanationHtml = `
+            <div class="mt-3 p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
+              <strong class="text-neon-cyan">Statistical Rationale:</strong> ${q.explanation}
+            </div>
+          `;
+        }
+
+        return `
+          <div class="neo-glass p-5 sm:p-6 rounded-2xl border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-slate-800">
+              <span class="font-bold text-neon-cyan font-mono"><i class="fa-solid fa-hashtag text-[10px] mr-1"></i> Question ${qIdx + 1}</span>
+              <div class="flex items-center gap-2">
+                <span class="bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded font-mono text-[10px]">${q.module}</span>
+                <span class="bg-slate-800 px-2 py-0.5 rounded border border-slate-700 font-mono text-[11px]">${q.category}</span>
+              </div>
+            </div>
+            <h3 class="font-bold text-white text-base leading-snug">${q.question}</h3>
+            <div class="space-y-2 pt-1">
+              ${optionsHtml}
+            </div>
+            ${explanationHtml}
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.handleOptionSelection = function(qId, optIdx) {
+      if (userAnswers[qId] !== undefined && instantRevealEnabled) return;
+
+      userAnswers[qId] = optIdx;
+      updateScoreboard();
+      renderNavigatorDots();
+
+      if (isSingleCardMode) {
+        renderSingleCard();
+      } else {
+        renderFullListView();
+      }
+
+      const q = currentQuestions.find(item => item.id === qId);
+      if (instantRevealEnabled && q) {
+        if (optIdx === q.runtimeAnswer) {
+          triggerToast("Correct! Excellent biostatistical analysis.");
+        } else {
+          triggerToast("Incorrect. Check the explanation below.", "fa-circle-xmark", true);
+        }
+      }
+    };
+
+    function finishQuiz() {
+      quizSubmitted = true;
+      clearInterval(timerInterval);
+
+      const elapsed = Math.floor((Date.now() - quizStartTime) / 1000);
+      const metrics = getScoreMetrics();
+
+      document.getElementById('finalScoreVal').textContent = `${metrics.correct} / ${metrics.total}`;
+      document.getElementById('finalAccuracyVal').textContent = `${metrics.percentage}%`;
+      document.getElementById('finalTimeVal').textContent = formatTime(elapsed);
+      document.getElementById('finalAnsweredVal').textContent = `${metrics.answered} / ${metrics.total}`;
+
+      const feedback = document.getElementById('performanceFeedbackBox');
+      if (metrics.percentage >= 90) {
+        feedback.innerHTML = `🌟 <strong>Distinction Level (Grade A)!</strong> Exceptional comprehensive mastery across measurement scales, numerical statistics, tabular/graphical displays, and statistical inference!`;
+        feedback.className = "p-4 rounded-2xl bg-emerald-500/20 border border-emerald-500 text-emerald-200 text-sm font-semibold max-w-xl mx-auto";
+      } else if (metrics.percentage >= 70) {
+        feedback.innerHTML = `👍 <strong>Solid Biostatistical Competence!</strong> You have demonstrated good command over the syllabus. Inspect the breakdown to review missed questions.`;
+        feedback.className = "p-4 rounded-2xl bg-cyan-500/20 border border-cyan-500 text-cyan-200 text-sm font-semibold max-w-xl mx-auto";
+      } else {
+        feedback.innerHTML = `📖 <strong>Curriculum Review Suggested:</strong> Focus on distinguishing probability vs odds, empirical rule percentages, and appropriate graphical pairings.`;
+        feedback.className = "p-4 rounded-2xl bg-amber-500/20 border border-amber-500 text-amber-200 text-sm font-semibold max-w-xl mx-auto";
+      }
+
+      document.getElementById('singleCardContainer').classList.add('hidden');
+      document.getElementById('singleCardHeaderSection').classList.add('hidden');
+      document.getElementById('fullListContainer').classList.add('hidden');
+      document.getElementById('resultsCardView').classList.remove('hidden');
+    }
+
+    /* STREAMING_CHUNK:Attaching event listeners, navigation, and modal configuration... */
+    function initEventHandlers() {
+      // Prev / Next button navigation
+      document.getElementById('navPrevBtn').addEventListener('click', () => {
+        if (currentIndex > 0) {
+          currentIndex--;
+          updateProgressBar();
+          renderNavigatorDots();
+          renderSingleCard();
+        }
+      });
+
+      document.getElementById('navNextBtn').addEventListener('click', () => {
+        if (currentIndex < currentQuestions.length - 1) {
+          currentIndex++;
+          updateProgressBar();
+          renderNavigatorDots();
+          renderSingleCard();
+        } else {
+          finishQuiz();
+        }
+      });
+
+      // 50:50 Eliminator
+      document.getElementById('eliminateTwoOptionsBtn').addEventListener('click', trigger5050Elimination);
+
+      document.getElementById('finishReviewBtn').addEventListener('click', finishQuiz);
+      document.getElementById('submitAllListBtn').addEventListener('click', finishQuiz);
+
+      // Quick Reset
+      document.getElementById('quickResetBtn').addEventListener('click', () => {
+        prepareQuestions();
+        triggerToast("Exam reset with fresh questions!");
+      });
+
+      // Retake exam
+      document.getElementById('retakeQuizBtn').addEventListener('click', () => {
+        document.getElementById('resultsCardView').classList.add('hidden');
+        if (isSingleCardMode) {
+          document.getElementById('singleCardContainer').classList.remove('hidden');
+          document.getElementById('singleCardHeaderSection').classList.remove('hidden');
+        } else {
+          document.getElementById('fullListContainer').classList.remove('hidden');
+        }
+        prepareQuestions();
+      });
+
+      // Review list from results
+      document.getElementById('reviewListFromResultsBtn').addEventListener('click', () => {
+        document.getElementById('resultsCardView').classList.add('hidden');
+        document.getElementById('singleCardContainer').classList.add('hidden');
+        document.getElementById('singleCardHeaderSection').classList.add('hidden');
+        document.getElementById('fullListContainer').classList.remove('hidden');
+        renderFullListView();
+      });
+
+      // Settings Modal toggles
+      const modal = document.getElementById('settingsBackdrop');
+      document.getElementById('openSettingsModalBtn').addEventListener('click', () => {
+        modal.classList.remove('hidden');
+      });
+      document.getElementById('closeSettingsModalBtn').addEventListener('click', () => {
+        modal.classList.add('hidden');
+      });
+
+      // Module Filter Buttons
+      document.querySelectorAll('.module-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.module-filter-btn').forEach(b => {
+            b.classList.remove('border-2', 'border-neon-indigo', 'bg-indigo-500/20', 'text-indigo-200', 'font-bold');
+            b.classList.add('border-slate-700', 'bg-slate-900/60', 'text-slate-300', 'font-medium');
+          });
+          btn.classList.remove('border-slate-700', 'bg-slate-900/60', 'text-slate-300', 'font-medium');
+          btn.classList.add('border-2', 'border-neon-indigo', 'bg-indigo-500/20', 'text-indigo-200', 'font-bold');
+          activeModule = btn.dataset.module;
+        });
+      });
+
+      // Question count selection chips
+      document.querySelectorAll('.qcount-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.qcount-chip').forEach(c => {
+            c.classList.remove('border-2', 'border-neon-cyan', 'bg-cyan-500/20', 'text-cyan-200', 'font-bold');
+            c.classList.add('border-slate-700', 'text-slate-300');
+          });
+          chip.classList.remove('border-slate-700', 'text-slate-300');
+          chip.classList.add('border-2', 'border-neon-cyan', 'bg-cyan-500/20', 'text-cyan-200', 'font-bold');
+          document.getElementById('activeCountBadge').textContent = 
+            chip.dataset.num === "ALL" ? "All Questions" : `${chip.dataset.num} Questions`;
+        });
+      });
+
+      // Mode toggles
+      const btnSingle = document.getElementById('setSingleCardModeBtn');
+      const btnList = document.getElementById('setListModeBtn');
+
+      btnSingle.addEventListener('click', () => {
+        isSingleCardMode = true;
+        btnSingle.className = "p-3 rounded-2xl border-2 border-neon-indigo bg-indigo-500/20 text-white font-semibold flex items-center justify-center gap-2 transition";
+        btnList.className = "p-3 rounded-2xl border border-slate-700 bg-slate-900/60 text-slate-400 font-medium flex items-center justify-center gap-2 hover:border-slate-500 transition";
+      });
+
+      btnList.addEventListener('click', () => {
+        isSingleCardMode = false;
+        btnList.className = "p-3 rounded-2xl border-2 border-neon-indigo bg-indigo-500/20 text-white font-semibold flex items-center justify-center gap-2 transition";
+        btnSingle.className = "p-3 rounded-2xl border border-slate-700 bg-slate-900/60 text-slate-400 font-medium flex items-center justify-center gap-2 hover:border-slate-500 transition";
+      });
+
+      // Apply settings
+      document.getElementById('applyPreferencesBtn').addEventListener('click', () => {
+        modal.classList.add('hidden');
+        document.getElementById('resultsCardView').classList.add('hidden');
+
+        if (isSingleCardMode) {
+          document.getElementById('singleCardContainer').classList.remove('hidden');
+          document.getElementById('singleCardHeaderSection').classList.remove('hidden');
+          document.getElementById('fullListContainer').classList.add('hidden');
+        } else {
+          document.getElementById('singleCardContainer').classList.add('hidden');
+          document.getElementById('singleCardHeaderSection').classList.add('hidden');
+          document.getElementById('fullListContainer').classList.remove('hidden');
+        }
+
+        prepareQuestions();
+        triggerToast("Preferences saved & examination restarted!");
+      });
+
+      // Keyboard arrow & number shortcuts
+      window.addEventListener('keydown', (e) => {
+        if (!isSingleCardMode || !modal.classList.contains('hidden')) return;
+        if (e.key === 'ArrowRight') {
+          document.getElementById('navNextBtn').click();
+        } else if (e.key === 'ArrowLeft') {
+          document.getElementById('navPrevBtn').click();
+        } else if (e.key === 'e' || e.key === 'E') {
+          trigger5050Elimination();
+        } else if (e.key >= '1' && e.key <= '4') {
+          const optIdx = parseInt(e.key) - 1;
+          const q = currentQuestions[currentIndex];
+          if (q && optIdx < q.runtimeOptions.length) {
+            handleOptionSelection(q.id, optIdx);
+          }
+        }
+      });
+    }
+
+    /* STREAMING_CHUNK:Configuring Particle Canvas physics and ambient cursor glow... */
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let mouseX = -1000;
+    let mouseY = -1000;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initParticles();
+    }
+
+    function initParticles() {
+      particles = [];
+      const count = Math.floor(window.innerWidth / 28);
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 2 + 0.7,
+          vx: (Math.random() - 0.5) * 0.35,
+          vy: (Math.random() - 0.5) * 0.35,
+          alpha: Math.random() * 0.5 + 0.2
+        });
+      }
+    }
+
+    function animateParticles() {
+      const toggle = document.getElementById('toggleParticlesCheckbox');
+      if (toggle && !toggle.checked) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        requestAnimationFrame(animateParticles);
+        return;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(99, 102, 241, ${p.alpha * 0.4})`;
+        ctx.fill();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+          if (dist < 110) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(6, 182, 212, ${0.15 * (1 - dist / 110)})`;
+            ctx.lineWidth = 0.65;
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(animateParticles);
+    }
+
+    const glow = document.getElementById('ambientGlow');
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      if (glow) {
+        glow.style.left = `${mouseX}px`;
+        glow.style.top = `${mouseY}px`;
+      }
+    });
+
+    window.addEventListener('resize', resizeCanvas);
+
+    window.onload = function() {
+      resizeCanvas();
+      animateParticles();
+      initEventHandlers();
+      prepareQuestions();
+    };
+  </script>
+</body>
+</html>
